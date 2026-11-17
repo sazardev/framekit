@@ -182,6 +182,7 @@ func drawCode(p *painter, spec Spec, sc Scene, lt, fade float64) {
 	lineH := 32 * S
 	if sc.Title != "" {
 		p.text(sc.Title, x, top-28*S, "h2-bold", "fg", fade)
+		p.line(x, top-12*S, float64(l.FrameX1)-40*S, top-12*S, "faint", fade*0.8)
 	}
 	highlight := map[int]bool{}
 	for _, n := range sc.Code.Highlight {

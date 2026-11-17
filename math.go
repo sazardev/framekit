@@ -11,6 +11,13 @@ type mathItem struct {
 	top, bottom string
 }
 
+// mathFunctions are colored as blue so "O(n log n)" never reads as "0(n log n)".
+var mathFunctions = map[string]bool{
+	"log": true, "ln": true, "sin": true, "cos": true, "tan": true,
+	"lim": true, "exp": true, "max": true, "min": true, "mod": true,
+	"O": true, "Θ": true, "Ω": true,
+}
+
 var mathSymbols = map[string]string{
 	"alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ", "epsilon": "ε",
 	"theta": "θ", "lambda": "λ", "mu": "μ", "sigma": "σ", "pi": "π",
@@ -171,61 +178,82 @@ func readGroup(src string, i int) (string, int) {
 	return src[i+1:], j
 }
 
-// mathWidth measures a rendered equation using the painter's current face.
-func mathWidth(p *painter, items []mathItem) float64 {
+// mathWidthFace measures an equation using a given type size.
+func mathWidthFace(p *painter, items []mathItem, face string) float64 {
 	w := 0.0
+	S := p.lay.Scale
 	for _, it := range items {
 		switch it.kind {
 		case "frac":
-			a := p.textWidth(it.top, "normal")
-			b := p.textWidth(it.bottom, "normal")
-			w += maxFloat(a, b) + 14*p.lay.Scale
+			a := p.textWidth(it.top, face)
+			b := p.textWidth(it.bottom, face)
+			w += maxFloat(a, b) + 22*S
 		case "sqrt":
-			w += p.textWidth(it.text, "normal") + 26*p.lay.Scale
+			w += p.textWidth(it.text, face) + 40*S
+		case "sup", "sub":
+			w += p.textWidth(it.text, "small")
 		default:
-			w += p.textWidth(it.text, "normal")
+			w += p.textWidth(it.text, face)
 		}
 	}
 	return w
 }
 
-// drawMath renders items centered at (cx, baseline).
+func mathWidth(p *painter, items []mathItem) float64 {
+	return mathWidthFace(p, items, "normal")
+}
+
+// drawMath renders items centered at (cx, baseline) with the normal face.
 func drawMath(p *painter, items []mathItem, cx, baseline float64, alpha float64) {
-	drawMathAt(p, items, cx-mathWidth(p, items)/2, baseline, alpha)
+	drawMathFace(p, items, cx-mathWidthFace(p, items, "normal")/2, baseline, alpha, "normal")
 }
 
 // drawMathAt renders items starting at a left x coordinate.
 func drawMathAt(p *painter, items []mathItem, x, baseline float64, alpha float64) {
+	drawMathFace(p, items, x, baseline, alpha, "normal")
+}
+
+// drawMathFace is the shared renderer with an explicit type size.
+func drawMathFace(p *painter, items []mathItem, x, baseline, alpha float64, face string) {
 	S := p.lay.Scale
 	for _, it := range items {
 		switch it.kind {
 		case "frac":
-			tw := maxFloat(p.textWidth(it.top, "normal"), p.textWidth(it.bottom, "normal"))
-			p.textAnchored(it.top, x+tw/2, baseline-16*S, "normal", "fg", alpha)
-			p.textAnchored(it.bottom, x+tw/2, baseline+16*S, "normal", "fg", alpha)
+			tw := maxFloat(p.textWidth(it.top, face), p.textWidth(it.bottom, face))
+			p.textAnchored(it.top, x+tw/2, baseline-26*S, face, "fg", alpha)
+			p.textAnchored(it.bottom, x+tw/2, baseline+26*S, face, "fg", alpha)
 			p.ctx.SetColor(Mix(p.theme.Color("green"), p.bg, alpha))
 			p.ctx.SetLineWidth(1)
-			p.ctx.DrawLine(x, baseline, x+tw, baseline)
+			p.ctx.DrawLine(x+6*S, baseline, x+tw-6*S, baseline)
 			p.ctx.Stroke()
-			x += tw + 14*S
+			x += tw + 22*S
 		case "sqrt":
-			p.text("√", x, baseline+8*S, "h2", "aqua", alpha)
-			iw := p.textWidth(it.text, "normal")
-			p.text(it.text, x+20*S, baseline, "normal", "fg", alpha)
+			p.text("√", x, baseline+10*S, face, "aqua", alpha)
+			iw := p.textWidth(it.text, face)
+			p.text(it.text, x+28*S, baseline, face, "fg", alpha)
 			p.ctx.SetColor(Mix(p.theme.Color("aqua"), p.bg, alpha))
 			p.ctx.SetLineWidth(1)
-			p.ctx.DrawLine(x+18*S, baseline-22*S, x+20*S+iw, baseline-22*S)
+			p.ctx.DrawLine(x+26*S, baseline-30*S, x+28*S+iw, baseline-30*S)
 			p.ctx.Stroke()
-			x += iw + 26*S
+			x += iw + 40*S
 		case "sup":
-			p.text(it.text, x, baseline-14*S, "small", "yellow", alpha)
-			x += p.textWidth(it.text, "small")
+			p.text(it.text, x, baseline-16*S, "small", "yellow", alpha)
+			x += p.textWidth(it.text, "small") + 2*S
 		case "sub":
-			p.text(it.text, x, baseline+12*S, "small", "blue", alpha)
-			x += p.textWidth(it.text, "small")
+			p.text(it.text, x, baseline+14*S, "small", "blue", alpha)
+			x += p.textWidth(it.text, "small") + 2*S
 		default:
-			p.text(it.text, x, baseline, "normal", "fg", alpha)
-			x += p.textWidth(it.text, "normal")
+			color := "fg"
+			word := strings.TrimSpace(it.text)
+			if mathFunctions[word] {
+				color = "blue"
+			}
+			// Big-O reads as a zero in monospace; accent it so it is unmistakable.
+			if word == "O" || word == "Θ" || word == "Ω" {
+				color = "green"
+			}
+			p.text(it.text, x, baseline, face, color, alpha)
+			x += p.textWidth(it.text, face)
 		}
 	}
 }
@@ -280,3 +308,6 @@ func mathPlain(expr string) string {
 	}
 	return strings.Join(parts, "")
 }
+
+// DebugMath exposes a plain rendering of an expression for tooling/tests.
+func DebugMath(expr string) string { return mathPlain(expr) }
