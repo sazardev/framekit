@@ -85,6 +85,23 @@ type Scene struct {
 	Code     *CodeBlock `json:"code,omitempty"`
 	Diagram  *Diagram   `json:"diagram,omitempty"`
 	Drawing  *Drawing   `json:"drawing,omitempty"`
+	Formula  *Formula   `json:"formula,omitempty"`
+}
+
+// Formula renders a compact TeX-ish equation with a plain-English caption and
+// optional step-by-step reveal. Everything is drawn locally with Geist Mono.
+type Formula struct {
+	Expr    string        `json:"expr"`
+	Caption string        `json:"caption,omitempty"`
+	Steps   []FormulaStep `json:"steps,omitempty"`
+	At      float64       `json:"at,omitempty"`
+	Animate bool          `json:"animate,omitempty"`
+}
+
+type FormulaStep struct {
+	Expr string  `json:"expr"`
+	Note string  `json:"note,omitempty"`
+	At   float64 `json:"at,omitempty"`
 }
 
 // Point is a normalized coordinate (0..1) inside the scene content area.

@@ -235,6 +235,8 @@ func drawFrame(p *painter, spec Spec, sceneIdx int, localT, totalT float64) {
 		drawDiagram(p, spec, sc, localT, fade)
 	case "draw":
 		drawDrawing(p, spec, sc, localT, fade)
+	case "formula", "math":
+		drawFormula(p, spec, sc, localT, fade)
 	default:
 		drawTerminal(p, spec, sc, localT, fade, false)
 	}

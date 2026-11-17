@@ -172,13 +172,18 @@ Framekit is built for teaching code and concepts. Three dedicated scene kinds:
 | `code` | Syntax-highlighted snippets (Go, Python, Rust, TypeScript, SQL, Bash, Dart) with line numbers, highlighted lines and progressive reveal |
 | `diagram` | Declarative nodes + arrows, with `row`, `grid` or `explicit` layout, labels, shapes and accent colors |
 | `draw` | Whiteboard simulation: `line`, `arrow`, `path`, `rect` and `circle` strokes drawn progressively by normalized coordinates, with a moving pen marker |
+| `formula` / `math` | Lightweight TeX-ish equations: `\frac{a}{b}`, `\sqrt{x}`, `x^2`, `x_i`, Greek letters, `\sum`, `\int` and more, with a plain-English caption and animated derivation steps |
 
-Two new templates compose them into full lessons:
+Templates that compose them into full lessons (all narration/captions in English):
 
 ```bash
-./framekit use --template tutorial --vars vars.json --out lesson.json
-./framekit use --template theory   --vars vars.json --out theory.json
+./framekit use --template tutorial  --vars vars.json --out lesson.json
+./framekit use --template theory    --vars vars.json --out theory.json
+./framekit use --template explainer --vars vars.json --out explainer.json
 ```
+
+`explainer` is equation-first: hook → animated equation with derivation steps →
+code → diagram → whiteboard curve → takeaway (~36 s).
 
 `tutorial` runs hook → code → diagram → whiteboard → recap (~30 s).
 `theory` runs title → concept slide → layered diagram → whiteboard → summary (~26 s).
@@ -191,7 +196,20 @@ Example code scene:
   "content":"ch := make(chan int)\ngo func() { ch <- 42 }()\nfmt.Println(<-ch)"}}
 ```
 
-The linter validates stroke geometry, diagram edge references and code height.
+The linter validates stroke geometry, diagram edge references, code height and
+formula braces/commands.
+
+Equation example:
+
+```json
+{"kind":"formula","duration":9,"formula":{
+  "expr":"T(n) = O(n \\log n)","animate":true,
+  "caption":"n items, split in half, merged back together",
+  "steps":[
+    {"expr":"T(n) = 2T(n/2) + O(n)","note":"recurrence"},
+    {"expr":"n^{\\log_2 2} = n","note":"master theorem"},
+    {"expr":"T(n) = O(n \\log n)","note":"result"}]}}
+```
 
 ## Website
 

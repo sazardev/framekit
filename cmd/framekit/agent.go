@@ -336,7 +336,7 @@ const specSchema = `{
     "scenes": {"type": "array", "minItems": 1, "items": {
       "type": "object", "required": ["duration"],
       "properties": {
-        "kind": {"enum": ["terminal", "code", "title", "stats", "credits", "image", "slide", "diagram", "draw"]},
+        "kind": {"enum": ["terminal", "code", "title", "stats", "credits", "image", "slide", "diagram", "draw", "formula", "math"]},
         "name": {"type": "string"}, "duration": {"type": "number", "minimum": 0.5},
         "command": {"type": "string"}, "title": {"type": "string"}, "subtitle": {"type": "string"},
         "accent": {"type": "string"},
@@ -375,6 +375,14 @@ const specSchema = `{
             "x":{"type":"number"},"y":{"type":"number"},"w":{"type":"number"},"h":{"type":"number"},
             "label":{"type":"string"},"color":{"type":"string"},"width":{"type":"number"},
             "at":{"type":"number"},"duration":{"type":"number"}
+          }}}
+        }},
+        "formula": {"type": "object", "properties": {
+          "expr": {"type": "string", "description": "TeX-ish: \\frac{a}{b}, \\sqrt{x}, x^2, x_i, \\alpha, \\sum"},
+          "caption": {"type": "string", "description": "plain-English explanation"},
+          "animate": {"type": "boolean"}, "at": {"type": "number"},
+          "steps": {"type": "array", "items": {"type": "object", "properties": {
+            "expr": {"type": "string"}, "note": {"type": "string"}, "at": {"type": "number"}
           }}}
         }}
       }

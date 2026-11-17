@@ -107,6 +107,44 @@ var BuiltinTemplates = map[string]string{
   ],
   "output":"{{output:showcase.mp4}}"
 }`,
+	"explainer": `{
+  "title": "{{title:Big O Notation, Visually}}",
+  "format": "{{format:landscape}}",
+  "effects": {"typewriter":true,"cursor":true,"chrome":true,"progress":true,
+              "fade":0.4,"slide":12,"easing":"easeOutQuint","tracking":1.5},
+  "music": {"enabled":true,"volume":0.2,"progression":"minimal","tempo":72},
+  "scenes": [
+    {"kind":"title","name":"01 / HOOK","duration":3.5,
+     "title":"{{title:Big O Notation, Visually}}",
+     "subtitle":"{{subtitle:why growth rate matters}}","accent":"aqua"},
+    {"kind":"formula","name":"02 / EQUATION","duration":9,
+     "title":"{{formulaTitle:The complexity}}",
+     "formula":{"expr":"T(n) = O(n \\log n)","animate":true,
+       "caption":"n items, split in half, merged back together",
+       "steps":[
+         {"expr":"T(n) = 2T(n/2) + O(n)","note":"recurrence"},
+         {"expr":"n^{\\log_2 2} = n","note":"master theorem"},
+         {"expr":"T(n) = O(n \\log n)","note":"result"}]}},
+    {"kind":"code","name":"03 / CODE","duration":7,
+     "title":"{{codeTitle:Where it comes from}}",
+     "code":{"language":"go","lineNumbers":true,"highlight":[2,3],
+       "content":"func mergeSort(a []int) []int {\n  mid := len(a) / 2\n  left := mergeSort(a[:mid])\n  right := mergeSort(a[mid:])\n  return merge(left, right)\n}"}},
+    {"kind":"diagram","name":"04 / DIAGRAM","duration":6,
+     "title":"{{diagramTitle:Split, then merge}}",
+     "diagram":{"layout":"row",
+       "nodes":[{"id":"in","label":"input"},{"id":"split","label":"split","accent":"yellow"},{"id":"merge","label":"merge","accent":"aqua"}],
+       "edges":[{"from":"in","to":"split"},{"from":"split","to":"merge","label":"log n levels"}]}},
+    {"kind":"draw","name":"05 / WHITEBOARD","duration":7,
+     "title":"{{drawTitle:See the curve}}",
+     "drawing":{"strokes":[
+       {"kind":"line","points":[{"x":0.12,"y":0.8},{"x":0.12,"y":0.15}],"at":0.2,"duration":1,"label":"time"},
+       {"kind":"line","points":[{"x":0.12,"y":0.8},{"x":0.9,"y":0.8}],"at":1.2,"duration":1,"label":"n"},
+       {"kind":"path","points":[{"x":0.14,"y":0.78},{"x":0.35,"y":0.68},{"x":0.55,"y":0.52},{"x":0.75,"y":0.34},{"x":0.88,"y":0.2}],"at":2.4,"duration":2.2,"label":"n log n","color":"aqua"}]}},
+    {"kind":"credits","name":"06 / END","duration":4,
+     "title":"Key takeaway","subtitle":"{{cta:Follow for more}}"}
+  ],
+  "output":"{{output:explainer.mp4}}"
+}`,
 	"tutorial": `{
   "title": "{{title:Understanding Channels in Go}}",
   "format": "{{format:landscape}}",

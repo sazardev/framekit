@@ -215,7 +215,7 @@ func Lint(spec Spec, cfg Config, quality string, analysis Analysis) []Finding {
 		if r.RequireEyebrows && sc.Name == "" {
 			add(SevWarn, "EYEBROW_MISSING", "scene has no name/eyebrow", n)
 		}
-		hasVisual := sc.Code != nil || sc.Diagram != nil || sc.Drawing != nil || sc.Image != nil
+		hasVisual := sc.Code != nil || sc.Diagram != nil || sc.Drawing != nil || sc.Image != nil || sc.Formula != nil
 		if len(sc.Lines)+len(sc.Items) == 0 && sc.Title == "" && len(sc.Stats) == 0 && !hasVisual {
 			add(SevWarn, "EMPTY_SCENE", "scene has no visible content", n)
 		}
@@ -276,6 +276,29 @@ func Lint(spec Spec, cfg Config, quality string, analysis Analysis) []Finding {
 			}
 			if len(sc.Diagram.Nodes) > 9 {
 				add(SevWarn, "DIAGRAM_CROWDED", "more than 9 nodes will be hard to read", n)
+			}
+		}
+		if sc.Formula != nil {
+			if !mathValid(sc.Formula.Expr) {
+				add(SevError, "FORMULA_BRACES", "unbalanced braces in formula", n)
+			}
+			for _, cmd := range mathHasUnknownCommand(sc.Formula.Expr) {
+				add(SevWarn, "FORMULA_UNKNOWN_CMD", "unknown math command: "+cmd, n)
+			}
+			if len(sc.Formula.Steps) > 3 {
+				add(SevWarn, "FORMULA_MANY_STEPS", "more than 3 steps will overflow the frame", n)
+			}
+			for j, st := range sc.Formula.Steps {
+				if !mathValid(st.Expr) {
+					add(SevError, "FORMULA_BRACES", "unbalanced braces in step "+intStr(j+1), n)
+				}
+				at := st.At
+				if at == 0 {
+					at = sc.Formula.At + 1.4 + float64(j)*1.2
+				}
+				if at+spec.Effects.Fade > sc.Duration {
+					add(SevWarn, "FORMULA_AFTER_END", "step appears too late to finish", n)
+				}
 			}
 		}
 		if sc.Drawing != nil {

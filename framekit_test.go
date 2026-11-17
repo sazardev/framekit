@@ -227,6 +227,39 @@ func TestTutorialScenes(t *testing.T) {
 	}
 }
 
+func TestMath(t *testing.T) {
+	if !mathValid(`\frac{a}{b} + x^2`) {
+		t.Fatal("valid expression rejected")
+	}
+	if mathValid(`\frac{a}{b`) {
+		t.Fatal("unbalanced braces accepted")
+	}
+	items := parseMath(`T(n) = O(n \log n)`)
+	joined := mathPlain(`T(n) = O(n \log n)`)
+	if !strings.Contains(joined, "O(n log n)") {
+		t.Fatalf("command expansion failed: %q (%+v)", joined, items)
+	}
+	if got := flattenGroup(`\log_2 2`); !strings.Contains(got, "log₂") {
+		t.Fatalf("flattenGroup = %q", got)
+	}
+	if u := mathHasUnknownCommand(`\foobar x`); len(u) != 1 || u[0] != "foobar" {
+		t.Fatalf("unknown commands = %v", u)
+	}
+	ex, err := RenderTemplate("explainer", map[string]string{}, DefaultConfig())
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, sc := range ex.Scenes {
+		if sc.Kind == "formula" && sc.Formula != nil {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("explainer template has no formula scene")
+	}
+}
+
 func TestEasing(t *testing.T) {
 	if got := Ease("linear", 0.5); got != 0.5 {
 		t.Fatalf("linear = %v", got)
