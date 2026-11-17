@@ -1,0 +1,74 @@
+{
+  "title": "SazarDev — Freelance Developer Intro",
+  "format": "landscape",
+  "fps": 30,
+  "effects": {
+    "typewriter": true,
+    "cursor": true,
+    "fade": 0.38,
+    "slide": 10,
+    "progress": true,
+    "chrome": true
+  },
+  "music": { "enabled": true, "volume": 0.25, "style": "ambient" },
+  "scenes": [
+    {
+      "kind": "terminal",
+      "name": "01 / IDENTITY",
+      "duration": 4,
+      "command": "whoami",
+      "lines": [
+        { "text": "Omar Flores", "font": "huge", "at": 1.3 },
+        { "text": "Full-Stack Freelance Developer", "color": "green", "font": "bold", "at": 1.9 },
+        { "text": "Web  ·  Mobile  ·  APIs  ·  Developer tools", "color": "dim", "at": 2.5 }
+      ]
+    },
+    {
+      "kind": "terminal",
+      "name": "02 / STACK",
+      "duration": 4.65,
+      "command": "cat stack.txt",
+      "items": [
+        { "name": "Flutter / Dart", "note": "mobile apps", "at": 0.7 },
+        { "name": "React / TypeScript", "note": "web apps", "at": 1.1 },
+        { "name": "Go / Rust", "note": "CLIs & systems", "at": 1.5 },
+        { "name": "Python", "note": "services & AI", "at": 1.9 },
+        { "name": "Firebase / PostgreSQL / Docker", "note": "data & infra", "at": 2.3 }
+      ]
+    },
+    {
+      "kind": "terminal",
+      "name": "03 / PROJECTS",
+      "duration": 7.5,
+      "command": "ls ~/portfolio",
+      "items": [
+        { "name": "shiki", "note": "331 stars  ·  TUI notes in Rust", "at": 0.7 },
+        { "name": "oxid", "note": "preview envs · scale-to-zero", "at": 1.1 },
+        { "name": "leader", "note": "20ms Neovim framework", "at": 1.5 },
+        { "name": "go-pretty-pdf", "note": "Markdown → print-ready PDF", "at": 1.9 },
+        { "name": "road-to", "note": "10 apps on Google Play", "at": 2.3 },
+        { "name": "orca", "note": "coding agents in your pocket", "at": 2.7 },
+        { "name": "+ 20 more", "note": "open source, apps & platforms", "at": 3.1 }
+      ]
+    },
+    {
+      "kind": "stats",
+      "name": "04 / IMPACT",
+      "duration": 4.85,
+      "stats": [
+        { "value": "29", "label": "APPS SHIPPED", "at": 0.7 },
+        { "value": "300+", "label": "GITHUB STARS", "at": 1.1 },
+        { "value": "26", "label": "PORTFOLIO PROJECTS", "at": 1.5 }
+      ]
+    },
+    {
+      "kind": "credits",
+      "name": "05 / CONTACT",
+      "duration": 4,
+      "title": "SazarDev",
+      "subtitle": "Let's build something solid together.",
+      "lines": [ { "text": "@salazarprograms  ·  Fiverr", "color": "dim", "at": 2.4 } ]
+    }
+  ],
+  "output": "intro.mp4"
+}

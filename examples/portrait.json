@@ -1,0 +1,41 @@
+{
+  "title": "SazarDev — Reel",
+  "format": "portrait",
+  "fps": 30,
+  "effects": {
+    "typewriter": true, "cursor": true, "fade": 0.3,
+    "slide": 8, "progress": true, "chrome": true
+  },
+  "music": { "enabled": true, "volume": 0.28 },
+  "scenes": [
+    {
+      "kind": "title", "name": "01 / HOLA", "duration": 3,
+      "title": "Omar Flores", "subtitle": "Full-Stack Freelance Developer"
+    },
+    {
+      "kind": "terminal", "name": "02 / STACK", "duration": 5,
+      "command": "cat stack.txt",
+      "items": [
+        { "name": "Flutter / Dart", "note": "mobile", "at": 0.6 },
+        { "name": "React / TypeScript", "note": "web", "at": 1.0 },
+        { "name": "Go / Rust", "note": "systems", "at": 1.4 },
+        { "name": "Firebase / PostgreSQL", "note": "data", "at": 1.8 }
+      ]
+    },
+    {
+      "kind": "stats", "name": "03 / IMPACT", "duration": 5,
+      "stats": [
+        { "value": "29", "label": "APPS SHIPPED" },
+        { "value": "26", "label": "PROJECTS" },
+        { "value": "300+", "label": "GITHUB STARS" }
+      ]
+    },
+    {
+      "kind": "credits", "name": "04 / CONTACT", "duration": 4,
+      "title": "Let's build",
+      "subtitle": "something solid together.",
+      "lines": [ { "text": "@salazarprograms · Fiverr", "color": "aqua", "at": 1.5 } ]
+    }
+  ],
+  "output": "reel.mp4"
+}

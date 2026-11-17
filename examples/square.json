@@ -1,0 +1,35 @@
+{
+  "title": "SazarDev — Square",
+  "format": "square",
+  "fps": 30,
+  "effects": {
+    "typewriter": true, "cursor": true, "fade": 0.35,
+    "slide": 9, "progress": true, "chrome": true
+  },
+  "music": { "enabled": true, "volume": 0.25 },
+  "scenes": [
+    {
+      "kind": "terminal", "duration": 4, "name": "01 / WHOAMI",
+      "command": "whoami",
+      "lines": [
+        { "text": "Omar Flores", "font": "huge", "at": 1.0 },
+        { "text": "Freelance Developer", "color": "green", "font": "bold", "at": 1.8 }
+      ]
+    },
+    {
+      "kind": "stats", "duration": 5, "name": "02 / IMPACT",
+      "stats": [
+        { "value": "29", "label": "APPS" },
+        { "value": "26", "label": "PROJECTS" },
+        { "value": "300+", "label": "STARS" }
+      ]
+    },
+    {
+      "kind": "credits", "duration": 4, "name": "03 / CONTACT",
+      "title": "SazarDev",
+      "subtitle": "Hire me on Fiverr",
+      "lines": [ { "text": "@salazarprograms", "color": "aqua", "at": 1.2 } ]
+    }
+  ],
+  "output": "square.mp4"
+}
