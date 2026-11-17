@@ -3,6 +3,7 @@ package framekit
 import (
 	"bytes"
 	"encoding/binary"
+	"math"
 	"testing"
 )
 
@@ -94,6 +95,30 @@ func TestTypedAndReveal(t *testing.T) {
 	}
 	if got := reveal(0.1, 0, 0.5); got <= 0 || got >= 1 {
 		t.Fatalf("reveal mid = %v", got)
+	}
+}
+
+func TestEasing(t *testing.T) {
+	if got := Ease("linear", 0.5); got != 0.5 {
+		t.Fatalf("linear = %v", got)
+	}
+	for _, kind := range []string{"easeIn", "easeInOut", "easeOutCubic", "easeOutQuint", "spring"} {
+		if got := Ease(kind, 1); math.Abs(got-1) > 1e-6 {
+			t.Fatalf("%s(1) = %v", kind, got)
+		}
+	}
+}
+
+func TestThemePresets(t *testing.T) {
+	if got := ThemeByName("catppuccin"); got.BG != "#1e1e2e" {
+		t.Fatalf("catppuccin bg = %q", got.BG)
+	}
+	s := Spec{Theme: &Theme{Name: "nord"}, Scenes: []Scene{{Duration: 1}}}
+	if err := s.Normalize(); err != nil {
+		t.Fatal(err)
+	}
+	if s.Theme.BG != "#2e3440" || s.Branding.Name != "SazarDev" {
+		t.Fatalf("theme/branding = %+v / %+v", s.Theme, s.Branding)
 	}
 }
 

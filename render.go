@@ -87,7 +87,7 @@ func Render(spec Spec, out string) error {
 
 func renderSilent(spec Spec, ffmpeg, out string) error {
 	lay := ComputeLayout(*spec.Size)
-	faces, err := loadFaces(lay.Fonts())
+	faces, err := loadFaces(lay.Fonts(), spec.Fonts)
 	if err != nil {
 		return err
 	}
@@ -140,12 +140,12 @@ func renderSilent(spec Spec, ffmpeg, out string) error {
 	return nil
 }
 
-func loadFaces(r FontRamp) (map[string]font.Face, error) {
-	reg, err := FontBytes("regular")
+func loadFaces(r FontRamp, cfg FontConfig) (map[string]font.Face, error) {
+	reg, err := FontBytesFrom(cfg.Regular, "regular")
 	if err != nil {
 		return nil, err
 	}
-	bold, err := FontBytes("bold")
+	bold, err := FontBytesFrom(cfg.Bold, "bold")
 	if err != nil {
 		return nil, err
 	}
@@ -190,27 +190,53 @@ func drawFrame(p *painter, spec Spec, sceneIdx int, localT, totalT float64) {
 	}
 
 	sc := spec.Scenes[sceneIdx]
-	fade := 1.0
-	if spec.Effects.Fade > 0 {
-		fade = clamp01(localT/spec.Effects.Fade) * clamp01((sc.Duration-localT)/spec.Effects.Fade)
+	fade := EasedReveal(spec, localT, 0) * EasedExit(spec, localT, sc.Duration)
+
+	if spec.Effects.Scanline && localT < 1.2 {
+		drawScanline(p, localT/1.2)
 	}
 
 	switch strings.ToLower(sc.Kind) {
 	case "title":
-		drawTitle(p, sc, fade)
+		drawTitle(p, spec, sc, fade)
 	case "stats":
 		drawStats(p, spec, sc, localT, fade)
 	case "credits":
-		drawCredits(p, sc, fade)
+		drawCredits(p, spec, sc, fade)
 	case "code":
 		drawTerminal(p, spec, sc, localT, fade, true)
 	default:
 		drawTerminal(p, spec, sc, localT, fade, false)
 	}
 
-	if spec.Effects.Progress {
-		drawProgress(p, totalT, spec.DurationSeconds())
+	if spec.Effects.Transition == "wipe" {
+		drawWipe(p, localT, sc.Duration)
 	}
+
+	if spec.Effects.Progress {
+		drawProgress(p, spec, totalT)
+	}
+}
+
+// drawScanline is a single flat 1px accent sweeping down at scene start.
+func drawScanline(p *painter, progress float64) {
+	y := float64(p.lay.FrameY0) + float64(p.lay.FrameY1-p.lay.FrameY0)*clamp01(progress)
+	p.ctx.SetColor(Mix(p.theme.Color("green"), p.bg, 0.35))
+	p.ctx.SetLineWidth(1)
+	p.ctx.DrawLine(float64(p.lay.FrameX0), y, float64(p.lay.FrameX1), y)
+	p.ctx.Stroke()
+}
+
+// drawWipe reveals the scene with a moving vertical accent line.
+func drawWipe(p *painter, local, duration float64) {
+	if local > 0.6 {
+		return
+	}
+	x := float64(p.lay.FrameX0) + float64(p.lay.FrameX1-p.lay.FrameX0)*Ease("easeInOut", local/0.6)
+	p.ctx.SetColor(p.theme.Color("green"))
+	p.ctx.SetLineWidth(2)
+	p.ctx.DrawLine(x, float64(p.lay.FrameY0), x, float64(p.lay.FrameY1))
+	p.ctx.Stroke()
 }
 
 func drawChrome(p *painter, spec Spec, sceneIdx int) {
@@ -220,8 +246,8 @@ func drawChrome(p *painter, spec Spec, sceneIdx int) {
 	p.ctx.SetColor(mustHex(th.Green))
 	p.ctx.DrawRectangle(float64(l.Margin), float64(l.HeaderY), 14*S, 14*S)
 	p.ctx.Fill()
-	p.text(th.Brand+"  /  video studio", float64(l.Margin)+24*S, float64(l.HeaderY)+13*S, "normal", "fg", 1)
-	meta := "framekit · 100% local render"
+	p.text(spec.Branding.Name+"  /  "+spec.Branding.Subtitle, float64(l.Margin)+24*S, float64(l.HeaderY)+13*S, "normal", "fg", 1)
+	meta := spec.Branding.Meta
 	ax := p.textWidth(meta, "small")
 	p.text(meta, float64(l.W-l.Margin)-ax, float64(l.HeaderY)+12*S, "small", "faint", 1)
 	p.line(float64(l.Margin), float64(l.DividerY), float64(l.W-l.Margin), float64(l.DividerY), "faint", 1)
@@ -242,7 +268,11 @@ func drawChrome(p *painter, spec Spec, sceneIdx int) {
 		p.ctx.DrawRectangle(float64(l.FrameX0)+22*S+float64(i)*18*S, float64(l.FrameY0)+18*S, 10*S, 10*S)
 		p.ctx.Fill()
 	}
-	title := "omar@" + strings.ToLower(th.Brand) + ": ~/video"
+	user := strings.ToLower(strings.Fields(spec.Branding.Name)[0])
+	if user == "" {
+		user = "user"
+	}
+	title := user + "@" + strings.ToLower(strings.ReplaceAll(spec.Branding.Name, " ", "")) + ": ~/" + spec.Branding.WindowTitle
 	tw := p.textWidth(title, "small")
 	p.text(title, float64(l.FrameX0+l.FrameX1)/2-tw/2, float64(l.FrameY0)+18*S+12*S, "small", "dim", 1)
 
@@ -252,20 +282,22 @@ func drawChrome(p *painter, spec Spec, sceneIdx int) {
 	}
 }
 
-func drawProgress(p *painter, t, total float64) {
+func drawProgress(p *painter, spec Spec, t float64) {
+	total := spec.DurationSeconds()
 	if total <= 0 {
 		return
 	}
 	l, S := p.lay, p.lay.Scale
 	y := float64(l.H) - 52*S
 	p.line(float64(l.Margin), y, float64(l.W-l.Margin), y, "faint", 1)
-	prog := clamp01(t / total)
+	prog := Ease(spec.Effects.Easing, t/total)
 	p.ctx.SetColor(mustHex(p.theme.Green))
 	p.ctx.SetLineWidth(2)
 	p.ctx.DrawLine(float64(l.Margin), y, float64(l.Margin)+float64(l.W-2*l.Margin)*prog, y)
 	p.ctx.Stroke()
-	p.text("FRAMEKIT · PRIVATE RENDER", float64(l.Margin), float64(l.H)-40*S, "small", "faint", 1)
-	tag := "GENERATED LOCALLY"
+	left := spec.Branding.FooterLeft
+	p.text(left, float64(l.Margin), float64(l.H)-40*S, "small", "faint", 1)
+	tag := spec.Branding.FooterRight
 	tw := p.textWidth(tag, "small")
 	p.text(tag, float64(l.W-l.Margin)-tw, float64(l.H)-40*S, "small", "faint", 1)
 }
@@ -295,12 +327,17 @@ func drawTerminal(p *painter, spec Spec, sc Scene, lt float64, fade float64, cod
 		lineH = 36 * S
 	}
 	base := y + 70*S
+	stagger := spec.Effects.Stagger
+	accent := sc.Accent
+	if accent == "" {
+		accent = "aqua"
+	}
 	for i, ln := range sc.Lines {
 		at := ln.At
 		if at == 0 {
-			at = 0.8 + float64(i)*0.4
+			at = 0.8 + float64(i)*stagger
 		}
-		a := fade * reveal(lt, at, spec.Effects.Fade)
+		a := fade * EasedReveal(spec, lt, at)
 		if a <= 0.01 {
 			continue
 		}
@@ -308,53 +345,65 @@ func drawTerminal(p *painter, spec Spec, sc Scene, lt float64, fade float64, cod
 		if spec.Effects.Typewriter {
 			s = typed(s, lt, at, 34)
 		}
-		dy := spec.Effects.Slide * S * (1 - clamp01((lt-at)/spec.Effects.Fade))
+		dy := spec.Effects.Slide * S * (1 - Ease(spec.Effects.Easing, (lt-at)/spec.Effects.Fade))
 		size := "code"
 		if ln.Font == "bold" {
 			size = "h2-bold"
 		} else if ln.Font == "huge" {
 			size = "hero-bold"
 		}
-		p.text(s, x+42*S, base+float64(i)*lineH+dy, size, ln.Color, a)
+		colorName := ln.Color
+		if colorName == "" {
+			colorName = "fg"
+		}
+		p.text(s, x+42*S, base+float64(i)*lineH+dy, size, colorName, a)
 	}
 
 	itemBase := base + float64(len(sc.Lines))*lineH
 	for i, it := range sc.Items {
 		at := it.At
 		if at == 0 {
-			at = 0.8 + float64(i)*0.4
+			at = 0.8 + float64(i)*stagger
 		}
-		a := fade * reveal(lt, at, spec.Effects.Fade)
+		a := fade * EasedReveal(spec, lt, at)
 		if a <= 0.01 {
 			continue
 		}
-		dy := spec.Effects.Slide * S * (1 - clamp01((lt-at)/spec.Effects.Fade))
+		dy := spec.Effects.Slide * S * (1 - Ease(spec.Effects.Easing, (lt-at)/spec.Effects.Fade))
 		yy := itemBase + float64(i)*lineH + dy
-		p.text(it.Name, x+42*S, yy, "code", "aqua", a)
+		p.text(it.Name, x+42*S, yy, "code", accent, a)
 		if it.Note != "" {
 			p.text(it.Note, x+minFloat(400*S, 430*S), yy, "small", "dim", a)
 		}
 	}
 }
 
-func drawTitle(p *painter, sc Scene, fade float64) {
+func drawTitle(p *painter, spec Spec, sc Scene, fade float64) {
 	l, S := p.lay, p.lay.Scale
 	cx := float64(l.W) / 2
 	cy := float64(l.CenterY)
+	accent := sc.Accent
+	if accent == "" {
+		accent = "green"
+	}
 	if sc.Title != "" {
-		p.textAnchored(sc.Title, cx, cy-40*S, "hero-bold", "fg", fade)
+		if spec.Effects.Tracking > 0 {
+			p.textTracked(sc.Title, cx, cy-40*S, "hero-bold", "fg", fade, spec.Effects.Tracking*S)
+		} else {
+			p.textAnchored(sc.Title, cx, cy-40*S, "hero-bold", "fg", fade)
+		}
 	}
 	if sc.Subtitle != "" {
-		p.ctx.SetColor(Mix(mustHex(p.theme.Green), p.bg, fade))
+		p.ctx.SetColor(Mix(p.theme.Color(accent), p.bg, fade))
 		p.ctx.SetLineWidth(1)
 		p.ctx.DrawLine(cx-200*S, cy+6*S, cx+200*S, cy+6*S)
 		p.ctx.Stroke()
-		p.textAnchored(sc.Subtitle, cx, cy+70*S, "h2", "green", fade)
+		p.textAnchored(sc.Subtitle, cx, cy+70*S, "h2", accent, fade)
 	}
 }
 
-func drawCredits(p *painter, sc Scene, fade float64) {
-	drawTitle(p, sc, fade)
+func drawCredits(p *painter, spec Spec, sc Scene, fade float64) {
+	drawTitle(p, spec, sc, fade)
 	l, S := p.lay, p.lay.Scale
 	if len(sc.Lines) > 0 {
 		p.textAnchored(sc.Lines[0].Text, float64(l.W)/2, float64(l.CenterY)+130*S, "normal", "dim", fade)
@@ -370,12 +419,17 @@ func drawStats(p *painter, spec Spec, sc Scene, lt float64, fade float64) {
 		gap = 150 * S
 	}
 	startX := cx - gap*float64(len(sc.Stats)-1)/2
+	accent := sc.Accent
+	if accent == "" {
+		accent = "green"
+	}
+	stagger := spec.Effects.Stagger
 	for i, st := range sc.Stats {
 		at := st.At
 		if at == 0 {
-			at = 0.4 + float64(i)*0.4
+			at = 0.4 + float64(i)*stagger
 		}
-		a := fade * reveal(lt, at, spec.Effects.Fade)
+		a := fade * EasedReveal(spec, lt, at)
 		if a <= 0.01 {
 			continue
 		}
@@ -385,7 +439,7 @@ func drawStats(p *painter, spec Spec, sc Scene, lt float64, fade float64) {
 			yy = cy - 180*S + float64(i)*150*S
 			xx = cx
 		}
-		p.textAnchored(st.Value, xx, yy, "hero-bold", "green", a)
+		p.textAnchored(st.Value, xx, yy, "hero-bold", accent, a)
 		p.textAnchored(st.Label, xx, yy+70*S, "small", "dim", a)
 	}
 }
@@ -425,6 +479,35 @@ func (p *painter) textAnchored(s string, x, y float64, size, colorName string, a
 	}
 	p.ctx.SetColor(c)
 	p.ctx.DrawStringAnchored(s, x, y, 0.5, 0.5)
+	p.ctx.Fill()
+}
+
+// textTracked draws centered text with extra letter spacing (premium look).
+func (p *painter) textTracked(s string, cx, y float64, size, colorName string, alpha, tracking float64) {
+	face := p.faces[size]
+	if face == nil {
+		face = p.faces["normal"]
+	}
+	p.ctx.SetFontFace(face)
+	c := p.theme.Color(colorName)
+	if alpha < 0.999 {
+		c = Mix(c, p.bg, alpha)
+	}
+	p.ctx.SetColor(c)
+	runes := []rune(s)
+	total := 0.0
+	for _, r := range runes {
+		w, _ := p.ctx.MeasureString(string(r))
+		total += w + tracking
+	}
+	total -= tracking
+	x := cx - total/2
+	for _, r := range runes {
+		ch := string(r)
+		w, _ := p.ctx.MeasureString(ch)
+		p.ctx.DrawString(ch, x, y)
+		x += w + tracking
+	}
 	p.ctx.Fill()
 }
 

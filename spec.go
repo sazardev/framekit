@@ -18,20 +18,39 @@ type Size struct {
 // Spec is the declarative interface. It is deliberately JSON-friendly so an
 // agent can emit it and call `framekit render --spec spec.json`.
 type Spec struct {
-	Title    string  `json:"title"`
-	Format   string  `json:"format,omitempty"`
-	Size     *Size   `json:"size,omitempty"`
-	FPS      int     `json:"fps,omitempty"`
-	Theme    *Theme  `json:"theme,omitempty"`
-	Effects  Effects `json:"effects"`
-	Scenes   []Scene `json:"scenes"`
-	Music    Music   `json:"music"`
-	Voices   []Voice `json:"voices,omitempty"`
-	Output   string  `json:"output,omitempty"`
-	FFmpeg   string  `json:"ffmpeg,omitempty"`
+	Title    string     `json:"title"`
+	Format   string     `json:"format,omitempty"`
+	Size     *Size      `json:"size,omitempty"`
+	FPS      int        `json:"fps,omitempty"`
+	Theme    *Theme     `json:"theme,omitempty"`
+	Branding Branding   `json:"branding,omitempty"`
+	Fonts    FontConfig `json:"fonts,omitempty"`
+	Effects  Effects    `json:"effects"`
+	Scenes   []Scene    `json:"scenes"`
+	Music    Music      `json:"music"`
+	Voices   []Voice    `json:"voices,omitempty"`
+	Output   string     `json:"output,omitempty"`
+	FFmpeg   string     `json:"ffmpeg,omitempty"`
 
 	// Duration is computed from scenes by Normalize.
 	Duration float64 `json:"duration,omitempty"`
+}
+
+// Branding personalizes all repeated chrome text. Empty fields fall back to
+// design-system defaults.
+type Branding struct {
+	Name        string `json:"name,omitempty"`
+	Subtitle    string `json:"subtitle,omitempty"`
+	Meta        string `json:"meta,omitempty"`
+	WindowTitle string `json:"windowTitle,omitempty"`
+	FooterLeft  string `json:"footerLeft,omitempty"`
+	FooterRight string `json:"footerRight,omitempty"`
+}
+
+// FontConfig allows local TTF overrides. Embedded Geist Mono is the default.
+type FontConfig struct {
+	Regular string `json:"regular,omitempty"`
+	Bold    string `json:"bold,omitempty"`
 }
 
 type Effects struct {
@@ -41,19 +60,26 @@ type Effects struct {
 	Slide      float64 `json:"slide"`
 	Progress   bool    `json:"progress"`
 	Chrome     bool    `json:"chrome"`
+
+	Easing     string  `json:"easing,omitempty"`     // linear|easeOut|easeInOut|spring
+	Transition string  `json:"transition,omitempty"` // bgfade|wipe|none
+	Scanline   bool    `json:"scanline,omitempty"`
+	Tracking   float64 `json:"tracking,omitempty"` // extra px per char on hero text
+	Stagger    float64 `json:"stagger,omitempty"`  // seconds between items
 }
 
 // Scene is one "slide". Kind: terminal | title | stats | credits | code.
 type Scene struct {
-	Kind     string `json:"kind"`
-	Name     string `json:"name,omitempty"` // eyebrow label, e.g. "03 / PROJECTS"
+	Kind     string  `json:"kind"`
+	Name     string  `json:"name,omitempty"` // eyebrow label, e.g. "03 / PROJECTS"
 	Duration float64 `json:"duration"`
-	Command  string `json:"command,omitempty"`
-	Title    string `json:"title,omitempty"`
-	Subtitle string `json:"subtitle,omitempty"`
-	Lines    []Line `json:"lines,omitempty"`
-	Stats    []Stat `json:"stats,omitempty"`
-	Items    []Item `json:"items,omitempty"`
+	Command  string  `json:"command,omitempty"`
+	Title    string  `json:"title,omitempty"`
+	Subtitle string  `json:"subtitle,omitempty"`
+	Lines    []Line  `json:"lines,omitempty"`
+	Stats    []Stat  `json:"stats,omitempty"`
+	Items    []Item  `json:"items,omitempty"`
+	Accent   string  `json:"accent,omitempty"` // per-scene accent override
 }
 
 type Line struct {
@@ -64,22 +90,24 @@ type Line struct {
 }
 
 type Stat struct {
-	Value string `json:"value"`
-	Label string `json:"label"`
+	Value string  `json:"value"`
+	Label string  `json:"label"`
 	At    float64 `json:"at,omitempty"`
 }
 
 type Item struct {
-	Name string `json:"name"`
-	Note string `json:"note,omitempty"`
+	Name string  `json:"name"`
+	Note string  `json:"note,omitempty"`
 	At   float64 `json:"at,omitempty"`
 }
 
 // Music describes the locally synthesized ambient track.
 type Music struct {
-	Enabled bool    `json:"enabled"`
-	Volume  float64 `json:"volume,omitempty"`
-	Style   string  `json:"style,omitempty"` // "ambient" (only style for now)
+	Enabled     bool    `json:"enabled"`
+	Volume      float64 `json:"volume,omitempty"`
+	Style       string  `json:"style,omitempty"`       // legacy alias of Progression
+	Progression string  `json:"progression,omitempty"` // ambient|uplift|noir|minimal
+	Tempo       float64 `json:"tempo,omitempty"`       // BPM for the arpeggio
 }
 
 // Voice is an optional narration. Provider "cloudflare" is opt-in and reads
@@ -122,21 +150,57 @@ func (s *Spec) Normalize() error {
 		def := Gruvbox()
 		s.Theme = &def
 	}
-	base := Gruvbox().Merge(s.Theme)
+	base := ThemeByName(s.Theme.Name).Merge(s.Theme)
+	if base.Brand == "" {
+		base.Brand = Gruvbox().Brand
+	}
 	s.Theme = &base
 
-	// Effects default to the full clean system; use the zero value explicitly
-	// via JSON to disable individual effects.
+	// Branding defaults come from the theme but can be overridden per spec.
+	b := &s.Branding
+	if b.Name == "" {
+		b.Name = s.Theme.Brand
+	}
+	if b.Subtitle == "" {
+		b.Subtitle = "video studio"
+	}
+	if b.Meta == "" {
+		b.Meta = "framekit · 100% local render"
+	}
+	if b.WindowTitle == "" {
+		b.WindowTitle = "video"
+	}
+	if b.FooterLeft == "" {
+		b.FooterLeft = "FRAMEKIT · PRIVATE RENDER"
+	}
+	if b.FooterRight == "" {
+		b.FooterRight = "GENERATED LOCALLY"
+	}
+
+	// Effects default to the full clean system.
 	if s.Effects.Fade == 0 {
 		s.Effects.Fade = 0.38
 	}
 	if s.Effects.Slide == 0 {
 		s.Effects.Slide = 10
 	}
-	if s.Effects.Typewriter == false && len(s.Scenes) > 0 {
-		// Typewriter defaults on unless explicitly disabled with "typewriter": false
-		// is impossible to distinguish from omission with a plain bool, so the
-		// CLI/agent sets this explicitly in shipped specs. Leave as-is.
+	if s.Effects.Easing == "" {
+		s.Effects.Easing = "easeOutCubic"
+	}
+	if s.Effects.Transition == "" {
+		s.Effects.Transition = "bgfade"
+	}
+	if s.Effects.Stagger <= 0 {
+		s.Effects.Stagger = 0.4
+	}
+	if s.Music.Progression == "" {
+		s.Music.Progression = s.Music.Style
+	}
+	if s.Music.Progression == "" {
+		s.Music.Progression = "ambient"
+	}
+	if s.Music.Tempo <= 0 {
+		s.Music.Tempo = 80
 	}
 	if len(s.Scenes) == 0 {
 		return fmt.Errorf("spec has no scenes")

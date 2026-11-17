@@ -1,0 +1,61 @@
+{
+  "title": "SazarDev — Premium Reel",
+  "format": "portrait",
+  "fps": 30,
+  "theme": { "name": "catppuccin" },
+  "branding": {
+    "name": "Omar Flores",
+    "subtitle": "video studio",
+    "meta": "sazardev.stream · freelance",
+    "windowTitle": "reel",
+    "footerLeft": "SAZARDEV · PRIVATE RENDER",
+    "footerRight": "CATPPUCCIN / 1080x1920"
+  },
+  "effects": {
+    "typewriter": true,
+    "cursor": true,
+    "fade": 0.45,
+    "slide": 12,
+    "progress": true,
+    "chrome": true,
+    "easing": "easeOutQuint",
+    "transition": "wipe",
+    "scanline": true,
+    "tracking": 2.5,
+    "stagger": 0.45
+  },
+  "music": { "enabled": true, "volume": 0.28, "progression": "uplift", "tempo": 96 },
+  "scenes": [
+    {
+      "kind": "title", "name": "01 / IDENTITY", "duration": 3.5,
+      "title": "Omar Flores", "subtitle": "Full-Stack Freelance Developer",
+      "accent": "aqua"
+    },
+    {
+      "kind": "terminal", "name": "02 / STACK", "duration": 5.5,
+      "command": "cat stack.txt", "accent": "yellow",
+      "items": [
+        { "name": "Flutter / Dart", "note": "mobile apps" },
+        { "name": "React / TypeScript", "note": "web apps" },
+        { "name": "Go / Rust", "note": "systems & CLIs" },
+        { "name": "Firebase / PostgreSQL", "note": "data & infra" }
+      ]
+    },
+    {
+      "kind": "stats", "name": "03 / IMPACT", "duration": 5,
+      "accent": "aqua",
+      "stats": [
+        { "value": "29", "label": "APPS SHIPPED" },
+        { "value": "26", "label": "PROJECTS" },
+        { "value": "300+", "label": "GITHUB STARS" }
+      ]
+    },
+    {
+      "kind": "credits", "name": "04 / CONTACT", "duration": 4.5,
+      "title": "Let's build", "subtitle": "something solid together.",
+      "accent": "green",
+      "lines": [ { "text": "@salazarprograms · Fiverr", "color": "aqua", "at": 1.5 } ]
+    }
+  ],
+  "output": "premium-reel.mp4"
+}

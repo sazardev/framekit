@@ -28,6 +28,18 @@ func main() {
 		}
 	case "agent":
 		fmt.Print(agentPrompt)
+	case "schema":
+		schemaCmd(os.Args[2:])
+	case "plan":
+		planCmd(os.Args[2:])
+	case "validate":
+		validateCmd(os.Args[2:])
+	case "describe":
+		describeCmd(os.Args[2:])
+	case "themes":
+		themesCmd(os.Args[2:])
+	case "skills":
+		skillsCmd(os.Args[2:])
 	case "version":
 		fmt.Println("framekit", version)
 	case "-h", "--help", "help":
@@ -43,10 +55,16 @@ func usage() {
 	fmt.Print(`framekit — declarative video framework (Go, local-first, gruvbox)
 
 Usage:
-  framekit render --spec spec.json [--out video.mp4]
-  framekit init   [--dir .]
+  framekit render   --spec spec.json [--out video.mp4]
+  framekit plan     --brief "30s portrait reel about my Flutter apps, noir music"
+  framekit validate --spec spec.json
+  framekit describe --spec spec.json
+  framekit schema                 # JSON Schema of the spec
+  framekit agent                  # full contract + rules for AI agents
+  framekit skills [--show]        # agent skill documents
+  framekit themes                 # available palettes
+  framekit init [--dir .]
   framekit presets
-  framekit agent        # prints the spec contract for AI agents
   framekit version
 
 Formats: landscape (1280x720), square (1080x1080), portrait (1080x1920).
@@ -136,34 +154,50 @@ const exampleSpec = `{
 }
 `
 
-const agentPrompt = `You are generating a framekit video spec. framekit renders local, flat-design
-videos with Go + ffmpeg. Respond with ONLY a JSON object matching this contract:
+const agentPrompt = `You are a framekit video agent. framekit renders local, flat-design videos
+with Go + ffmpeg. Get the machine-readable contract with ` + "`framekit schema`" + ` and the
+skill document with ` + "`framekit skills --show`" + `. Workflow:
+1. ` + "`framekit plan --brief \"<brief>\" --out spec.json`" + ` for a first draft.
+2. Edit spec.json using the schema.
+3. ` + "`framekit validate --spec spec.json`" + ` and ` + "`framekit describe --spec spec.json`" + `.
+4. ` + "`framekit render --spec spec.json --out video.mp4`" + `.
+
+Respond with ONLY a JSON object matching this contract:
 
 {
   "title": string,
   "format": "landscape" | "square" | "portrait",
   "fps": 30,
-  "effects": {"typewriter": bool, "cursor": bool, "fade": 0.38,
-              "slide": 10, "progress": true, "chrome": true},
-  "music": {"enabled": true, "volume": 0.25, "style": "ambient"},
+  "theme": {"name": "gruvbox|leader|catppuccin|tokyo-night|nord|dracula|solarized|light"},
+  "branding": {"name":"Omar Flores", "subtitle":"video studio",
+               "meta":"...", "windowTitle":"video",
+               "footerLeft":"...", "footerRight":"..."},
+  "fonts": {"regular":"/path/regular.ttf","bold":"/path/bold.ttf"},
+  "effects": {"typewriter":true,"cursor":true,"fade":0.38,"slide":10,
+              "progress":true,"chrome":true,
+              "easing":"linear|easeIn|easeInOut|easeOutCubic|easeOutQuint|spring",
+              "transition":"bgfade|wipe|none","scanline":false,
+              "tracking":1.5,"stagger":0.4},
+  "music": {"enabled":true,"volume":0.25,
+            "progression":"ambient|uplift|noir|minimal","tempo":80},
   "scenes": [
-    {"kind": "terminal"|"title"|"stats"|"credits"|"code",
-     "name": "01 / LABEL", "duration": seconds,
-     "command": "prompt text",
-     "lines": [{"text":"...", "color":"green|aqua|blue|yellow|fg|dim",
-                "font":"normal|bold|huge", "at": seconds}],
-     "stats": [{"value":"29","label":"APPS"}],
-     "items": [{"name":"shiki","note":"331 stars","at":1.0}]}
+    {"kind":"terminal|code|title|stats|credits","name":"01 / LABEL",
+     "duration":seconds,"accent":"green",
+     "command":"prompt text","title":"...","subtitle":"...",
+     "lines":[{"text":"...","color":"green|aqua|blue|yellow|fg|dim",
+               "font":"normal|bold|huge","at":seconds}],
+     "stats":[{"value":"29","label":"APPS SHIPPED","at":0.4}],
+     "items":[{"name":"shiki","note":"331 stars","at":0.8}]}
   ],
-  "voices": [{"provider":"cloudflare","text":"...","at":0,"volume":1}],
-  "output": "video.mp4"
+  "voices": [{"provider":"cloudflare","text":"...","model":"@cf/facebook/mms-tts-eng","at":0,"volume":1}],
+  "output":"video.mp4"
 }
 
 Rules:
-- Keep total duration between 15 and 60 seconds.
-- Use the default gruvbox theme unless the user asks for another palette.
-- Prefer short lines; the renderer never wraps text.
-- Colors: bg, deep, soft, fg, dim, faint, green, yellow, aqua, blue, red, purple, orange.
-- Voices are opt-in; Cloudflare needs CF_ACCOUNT_ID and CF_API_TOKEN.
-- Write the JSON to a file, then run: framekit render --spec spec.json --out video.mp4
+- Total duration 15-60s. Prefer 5 scenes with an eyebrow "name" per scene.
+- "premium"/"cinematic": easeOutQuint + transition wipe + scanline + tracking 2.5.
+- Personalize branding and palette; keep flat design (no gradients/shadows/radii).
+- Lines never wrap: keep them short. Use ` + "`at`" + ` for staggered reveals.
+- Voices are opt-in; Cloudflare needs CF_ACCOUNT_ID and CF_API_TOKEN. Never send data otherwise.
+- Save to spec.json, validate, describe, then render.
 `

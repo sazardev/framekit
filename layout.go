@@ -3,19 +3,19 @@ package framekit
 // Layout is derived from the output size so the same scenes render correctly
 // in landscape, square and portrait without per-format specs.
 type Layout struct {
-	W, H       int
-	Scale      float64
-	Margin     int
-	FrameX0    int
-	FrameY0    int
-	FrameX1    int
-	FrameY1    int
-	HeaderY    int
-	DividerY   int
-	ContentX   int
-	CenterY    int
-	Portrait   bool
-	Square     bool
+	W, H     int
+	Scale    float64
+	Margin   int
+	FrameX0  int
+	FrameY0  int
+	FrameX1  int
+	FrameY1  int
+	HeaderY  int
+	DividerY int
+	ContentX int
+	CenterY  int
+	Portrait bool
+	Square   bool
 }
 
 func ComputeLayout(sz Size) Layout {

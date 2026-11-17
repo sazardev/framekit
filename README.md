@@ -37,6 +37,46 @@ Requires `ffmpeg` in `PATH` (only for encoding/muxing).
 ./framekit agent                    # spec contract for AI agents
 ```
 
+## Premium & agentic
+
+```bash
+./framekit plan --brief "30s portrait reel about my Flutter apps, noir music, premium" --out spec.json
+./framekit validate --spec spec.json     # fail fast
+./framekit describe --spec spec.json     # scene timeline + music/voice summary
+./framekit schema                        # JSON Schema of the spec
+./framekit agent                         # full contract + rules for an AI agent
+./framekit skills                        # skill docs for coding agents
+./framekit themes                        # gruvbox, leader, catppuccin, tokyo-night, nord, dracula, solarized, light
+```
+
+`plan` is deterministic (no LLM needed) and produces a valid first draft from a
+natural-language brief. Agents can also emit the JSON directly using `--schema`.
+
+Premium feel is a set of switches, not a rewrite:
+
+```json
+"effects": {
+  "easing": "easeOutQuint",
+  "transition": "wipe",
+  "scanline": true,
+  "tracking": 2.5,
+  "stagger": 0.45
+}
+```
+
+See `examples/premium.json` (catppuccin, portrait, uplift @ 96 BPM, branding).
+
+## Skills
+
+Ready-to-use agent skills live in the repo:
+
+| File | Purpose |
+|---|---|
+| `.agents/skills/framekit-video/SKILL.md` | Full skill: workflow, design rules, real portfolio facts |
+| `.opencode/command/video.md` | `/video` slash command that loads the skill |
+
+`framekit skills --show` prints both from any directory inside the repo.
+
 ## Formats
 
 | Preset | Size | Use |

@@ -17,6 +17,54 @@ import (
 
 const sampleRate = 44100
 
+// progressionChords maps a named mood to its chord frequencies. All original,
+// all synthesized locally. "ambient" is the portfolio intro sound.
+func progressionChords(name string) [][]float64 {
+	switch name {
+	case "uplift":
+		return [][]float64{
+			{261.63, 329.63, 392.00, 493.88}, // Cmaj7
+			{349.23, 440.00, 523.25, 659.25}, // Fmaj7
+			{392.00, 493.88, 587.33, 698.46}, // Gmaj7
+			{329.63, 392.00, 493.88, 587.33}, // Emin7
+		}
+	case "noir":
+		return [][]float64{
+			{146.83, 174.61, 220.00, 261.63}, // Dm7
+			{130.81, 155.56, 196.00, 233.08}, // Cm7
+			{110.00, 130.81, 164.81, 196.00}, // Am7
+			{123.47, 146.83, 185.00, 220.00}, // Bdim-ish
+		}
+	case "minimal":
+		return [][]float64{
+			{220.00, 329.63, 440.00},
+			{196.00, 293.66, 392.00},
+			{174.61, 261.63, 349.23},
+			{196.00, 293.66, 392.00},
+		}
+	default: // ambient
+		return [][]float64{
+			{220.00, 261.63, 329.63, 392.00}, // Am7
+			{174.61, 220.00, 261.63, 329.63}, // Fmaj7
+			{261.63, 329.63, 392.00, 493.88}, // Cmaj7
+			{196.00, 246.94, 293.66, 392.00}, // G6
+		}
+	}
+}
+
+func progressionNotes(name string) []float64 {
+	switch name {
+	case "uplift":
+		return []float64{523.25, 659.25, 783.99, 987.77, 783.99, 659.25, 587.33, 493.88}
+	case "noir":
+		return []float64{349.23, 415.30, 523.25, 440.00, 392.00, 349.23, 311.13, 261.63}
+	case "minimal":
+		return []float64{440.00, 659.25, 587.33, 440.00, 392.00, 587.33, 523.25, 392.00}
+	default:
+		return []float64{440.00, 523.25, 659.25, 783.99, 659.25, 523.25, 493.88, 392.00}
+	}
+}
+
 // SynthMusic generates a deterministic ambient WAV locally: a four-chord pad,
 // a decaying arpeggio and soft noise ticks. No samples, no network, no licenses.
 func SynthMusic(dur float64, cfg Music) ([]byte, error) {
@@ -25,12 +73,7 @@ func SynthMusic(dur float64, cfg Music) ([]byte, error) {
 	}
 	n := int(dur * sampleRate)
 	mix := make([]float64, n)
-	chords := [][]float64{
-		{220.00, 261.63, 329.63, 392.00}, // Am7
-		{174.61, 220.00, 261.63, 329.63}, // Fmaj7
-		{261.63, 329.63, 392.00, 493.88}, // Cmaj7
-		{196.00, 246.94, 293.66, 392.00}, // G6
-	}
+	chords := progressionChords(cfg.Progression)
 	segDur := dur / float64(len(chords))
 	segN := int(segDur * sampleRate)
 	for ci, chord := range chords {
@@ -50,8 +93,12 @@ func SynthMusic(dur float64, cfg Music) ([]byte, error) {
 		}
 	}
 
-	notes := []float64{440.00, 523.25, 659.25, 783.99, 659.25, 523.25, 493.88, 392.00}
-	step := 0.375
+	notes := progressionNotes(cfg.Progression)
+	tempo := cfg.Tempo
+	if tempo <= 0 {
+		tempo = 80
+	}
+	step := 60 / tempo / 2 // eighth notes
 	for k := 0; k < int(dur/step); k++ {
 		f := notes[k%len(notes)]
 		st := int(float64(k) * step * sampleRate)
@@ -180,7 +227,9 @@ func resolveVoice(v Voice) (string, error) {
 	}
 	if bytes.HasPrefix(bytes.TrimSpace(data), []byte("{")) {
 		var env struct {
-			Errors []struct{ Message string `json:"message"` } `json:"errors"`
+			Errors []struct {
+				Message string `json:"message"`
+			} `json:"errors"`
 		}
 		if json.Unmarshal(data, &env) == nil && len(env.Errors) > 0 {
 			return "", fmt.Errorf("cloudflare: %s", env.Errors[0].Message)
