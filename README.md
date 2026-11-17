@@ -163,6 +163,25 @@ Ready-to-use agent skills live in the repo:
 
 `framekit skills --show` prints both from any directory inside the repo.
 
+## Interfaces
+
+Three ways to use the same engine:
+
+```bash
+./framekit render --spec spec.json --out video.mp4   # CLI (scriptable)
+./framekit tui                                        # interactive terminal UI
+./framekit desktop [--port 8239] [--no-open]         # local web studio
+```
+
+**TUI** (bubbletea): `j/k` or arrows to navigate, `←/→` to cycle values,
+`Enter` to edit title/output or render, `q` to quit. Pick template, format,
+quality, theme and music mood without writing JSON. Needs a real TTY.
+
+**Desktop**: a gruvbox-styled local web studio at `127.0.0.1` with a JSON spec
+editor, quality selector, live lint, background render job, video preview and
+download. Opens your browser automatically. Binds localhost only and enforces
+the same guardrails as the CLI.
+
 ## Formats
 
 | Preset | Size | Use |

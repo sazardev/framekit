@@ -9,7 +9,7 @@ import (
 	"github.com/sazardev/framekit"
 )
 
-const version = "0.1.0"
+const version = framekit.Version
 
 func main() {
 	if len(os.Args) < 2 {
@@ -53,6 +53,10 @@ func main() {
 		qualityCmd(os.Args[2:])
 	case "config":
 		configCmd(os.Args[2:])
+	case "tui":
+		tuiCmd(os.Args[2:])
+	case "desktop":
+		desktopCmd(os.Args[2:])
 	case "version":
 		fmt.Println("framekit", version)
 	case "-h", "--help", "help":
@@ -79,6 +83,8 @@ Usage:
   framekit describe --spec spec.json
   framekit quality
   framekit config   [--out .framekit.json]
+  framekit tui                    # interactive terminal UI
+  framekit desktop [--port 8239]  # local web studio, opens browser
   framekit schema                 # JSON Schema of the spec
   framekit agent                  # full contract + rules for AI agents
   framekit skills [--show]        # agent skill documents

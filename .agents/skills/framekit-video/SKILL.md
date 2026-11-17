@@ -47,7 +47,12 @@ go build -o framekit ./cmd/framekit      # only needed once
 ./framekit describe --spec spec.json
 ./framekit generate --spec spec.json --count 3 --seed 42 --dir variants
 ./framekit render --spec spec.json --out video.mp4 --quality high
+./framekit tui            # interactive terminal UI (needs a real TTY)
+./framekit desktop        # local web studio, auto-opens browser
 ```
+
+Use the TUI when the user wants to explore options interactively, and desktop
+when they want a visual editor with preview. Both use the same guardrails.
 
 `render` lints automatically. Never use `--no-strict` without the user's OK.
 
