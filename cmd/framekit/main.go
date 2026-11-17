@@ -88,7 +88,7 @@ Usage:
   framekit version
 
 Quality: draft, standard, high, social, master.
-Formats: landscape (1280x720), square (1080x1080), portrait (1080x1920).
+Formats: landscape (1920x1080), landscape720, square, portrait — all 60fps.
 `)
 }
 

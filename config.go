@@ -75,29 +75,29 @@ type Security struct {
 // tune, capped bitrate and faststart give crisp type at a small size.
 var QualityProfiles = map[string]Quality{
 	"draft": {
-		Scale: 0.5, FPS: 60, CRF: 31, Preset: "veryfast", Tune: "animation",
-		Profile: "main", Level: "4.2", MaxRate: "600k", BufSize: "1200k",
-		AudioBitrate: "64k", Description: "quick 60fps preview, half resolution",
+		Scale: 0.5, FPS: 60, CRF: 32, Preset: "veryfast", Tune: "animation",
+		Profile: "main", Level: "4.2", MaxRate: "800k", BufSize: "1600k",
+		AudioBitrate: "64k", Description: "fast 540p60 preview",
 	},
 	"standard": {
-		Scale: 1, FPS: 60, CRF: 26, Preset: "veryfast", Tune: "animation",
-		Profile: "high", Level: "4.2", MaxRate: "1200k", BufSize: "2400k",
-		AudioBitrate: "96k", Description: "balanced 60fps: crisp motion, small file",
+		Scale: 1, FPS: 60, CRF: 27, Preset: "veryfast", Tune: "animation",
+		Profile: "high", Level: "4.2", MaxRate: "1800k", BufSize: "3600k",
+		AudioBitrate: "96k", Description: "1080p60 fast, balanced size",
 	},
 	"high": {
-		Scale: 1, FPS: 60, CRF: 21, Preset: "medium", Tune: "animation",
-		Profile: "high", Level: "4.2", MaxRate: "2400k", BufSize: "4800k",
-		AudioBitrate: "128k", Description: "default premium 60fps delivery",
+		Scale: 1, FPS: 60, CRF: 22, Preset: "veryfast", Tune: "animation",
+		Profile: "high", Level: "4.2", MaxRate: "3000k", BufSize: "6000k",
+		AudioBitrate: "128k", Description: "default 1080p60 delivery, fast encode",
 	},
 	"master": {
-		Scale: 1, FPS: 60, CRF: 17, Preset: "slow", Tune: "animation",
+		Scale: 1, FPS: 60, CRF: 18, Preset: "faster", Tune: "animation",
 		Profile: "high", Level: "4.2", MaxRate: "6000k", BufSize: "12000k",
-		AudioBitrate: "192k", Description: "60fps archival / re-encode source",
+		AudioBitrate: "192k", Description: "1080p60 archival quality",
 	},
 	"social": {
-		Scale: 1, FPS: 60, CRF: 24, Preset: "veryfast", Tune: "animation",
-		Profile: "high", Level: "4.2", MaxRate: "900k", BufSize: "1800k",
-		AudioBitrate: "96k", Description: "60fps with platform-safe bitrate cap",
+		Scale: 1, FPS: 60, CRF: 25, Preset: "veryfast", Tune: "animation",
+		Profile: "high", Level: "4.2", MaxRate: "1500k", BufSize: "3000k",
+		AudioBitrate: "96k", Description: "1080p60 with platform-safe bitrate cap",
 	},
 }
 

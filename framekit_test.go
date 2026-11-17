@@ -34,7 +34,10 @@ func TestNormalize(t *testing.T) {
 }
 
 func TestPresets(t *testing.T) {
-	for _, name := range []string{"landscape", "square", "portrait"} {
+	if got := Presets["landscape"]; got.W != 1920 || got.H != 1080 {
+		t.Fatalf("landscape preset = %+v, want 1920x1080", got)
+	}
+	for _, name := range []string{"landscape", "landscape720", "square", "portrait"} {
 		if _, ok := Presets[name]; !ok {
 			t.Fatalf("missing preset %s", name)
 		}

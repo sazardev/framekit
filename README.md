@@ -1,8 +1,8 @@
 # framekit
 
 Declarative video framework in Go. Local-first, flat-design (gruvbox + Geist Mono),
-with synthesized music, optional Cloudflare Workers AI voices and three output
-formats: landscape, square and portrait.
+with synthesized music, optional Cloudflare Workers AI voices and four output
+formats: 1080p landscape, 720p landscape, square and portrait — all at 60 fps.
 
 It generates the exact visual language of [sazardev.stream](https://sazardev.stream):
 no gradients, no shadows, no border radius — only 1px dividers, gruvbox colors and
@@ -58,10 +58,10 @@ x264 `animation` tune, bitrate cap and level 4.2 (safe for 1080×1920@60).
 
 ```bash
 ./framekit quality
-./framekit render --spec spec.json --quality draft          # 360p60, crf 31
-./framekit render --spec spec.json --quality social         # 720p60, 900k cap
-./framekit render --spec spec.json --quality high           # 720p60, crf 21 (default)
-./framekit render --spec spec.json --quality master         # 720p60, crf 17
+./framekit render --spec spec.json --quality draft          # 540p60, crf 32 (fast preview)
+./framekit render --spec spec.json --quality social         # 1080p60, 1.5M cap
+./framekit render --spec spec.json --quality high           # 1080p60, crf 22, veryfast (default)
+./framekit render --spec spec.json --quality master         # 1080p60, crf 18
 ./framekit render --spec spec.json --quality high --fps 30  # override if needed
 ```
 
@@ -69,8 +69,10 @@ The linter emits `FPS_BELOW_60` if a profile drops below 60 fps. Disable with
 `"rules": {"allowLowerFPS": true}` in `.framekit.json`. `spec.fps` is
 documentation; the quality profile wins.
 
-Measured on the 25s intro at 60 fps: draft ~0.5 MB · social ~0.9 MB · high ~1.3 MB.
-All outputs are faststart H.264 + AAC.
+Measured on the 25s 1080p60 intro (1500 frames):
+**draft 329 KB / 12 s render · high 881 KB / 39 s render**.
+All outputs are faststart H.264 + AAC. The frame painter reuses one context
+across all frames to keep allocation overhead low.
 
 ### Linter & analyzer
 
@@ -165,9 +167,12 @@ Ready-to-use agent skills live in the repo:
 
 | Preset | Size | Use |
 |---|---|---|
-| `landscape` | 1280×720 | Fiverr, YouTube, LinkedIn |
+| `landscape` | **1920×1080** | Fiverr, YouTube, LinkedIn (default) |
+| `landscape720` | 1280×720 | lightweight fallback |
 | `square` | 1080×1080 | feeds |
 | `portrait` | 1080×1920 | Shorts, Reels, TikTok |
+
+All at 60 fps. Override with `"size": {"w": ..., "h": ...}`.
 
 Override with `"size": {"w": 1920, "h": 1080}`. Layout, font ramp and stat
 placement adapt automatically (stats stack vertically in portrait).

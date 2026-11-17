@@ -64,9 +64,12 @@ Extract: purpose (intro / reel / demo / promo), audience, duration, format, tone
 
 | Brief mentions | Format |
 |---|---|
-| Fiverr, YouTube, LinkedIn, intro, demo | `landscape` (1280x720) |
+| Fiverr, YouTube, LinkedIn, intro, demo | `landscape` (1920x1080) |
+| lightweight / small file | `landscape720` (1280x720) |
 | feed, post, cuadrado | `square` (1080x1080) |
 | reel, short, TikTok, portrait, vertical | `portrait` (1080x1920) |
+
+Default to 1080p60. Use `landscape720` or `--quality draft` only for previews.
 
 ### 3. Draft the spec
 

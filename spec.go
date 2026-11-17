@@ -2,12 +2,13 @@ package framekit
 
 import "fmt"
 
-// Format presets. Landscape is the Fiverr/social standard, square for feeds,
-// portrait for Shorts/Reels/TikTok. All are 16:9 / 1:1 / 9:16 exact.
+// Format presets. Landscape is true 1080p; landscape720 is a lightweight
+// fallback. Square and portrait are 1:1 and 9:16 at 1080px wide.
 var Presets = map[string]Size{
-	"landscape": {W: 1280, H: 720},
-	"square":    {W: 1080, H: 1080},
-	"portrait":  {W: 1080, H: 1920},
+	"landscape":    {W: 1920, H: 1080},
+	"landscape720": {W: 1280, H: 720},
+	"square":       {W: 1080, H: 1080},
+	"portrait":     {W: 1080, H: 1920},
 }
 
 type Size struct {

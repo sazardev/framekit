@@ -128,20 +128,20 @@ func renderSilent(spec Spec, ffmpeg, out string, q Quality) error {
 	}
 
 	total := int(math.Ceil(spec.DurationSeconds() * float64(fps)))
+	p := &painter{
+		ctx:   gg.NewContext(lay.W, lay.H),
+		lay:   lay,
+		theme: *spec.Theme,
+		faces: faces,
+		bg:    spec.Theme.Color("bg"),
+		f:     lay.Fonts(),
+	}
 	sceneStart, sceneIdx := 0.0, 0
 	for i := 0; i < total; i++ {
 		t := float64(i) / float64(fps)
 		for sceneIdx < len(spec.Scenes)-1 && t >= sceneStart+spec.Scenes[sceneIdx].Duration {
 			sceneStart += spec.Scenes[sceneIdx].Duration
 			sceneIdx++
-		}
-		p := &painter{
-			ctx:   gg.NewContext(lay.W, lay.H),
-			lay:   lay,
-			theme: *spec.Theme,
-			faces: faces,
-			bg:    spec.Theme.Color("bg"),
-			f:     lay.Fonts(),
 		}
 		drawFrame(p, spec, sceneIdx, t-sceneStart, t)
 		img := p.ctx.Image().(*image.RGBA)
