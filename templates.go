@@ -114,10 +114,10 @@ var BuiltinTemplates = map[string]string{
               "fade":0.5,"slide":14,"easing":"easeOutQuint","tracking":2.5},
   "music": {"enabled":true,"volume":0.2,"progression":"minimal","tempo":68},
   "scenes": [
-    {"kind":"title","name":"01 / QUOTE","duration":6,
+    {"kind":"title","name":"01 / QUOTE","duration":10,
      "title":"{{quote:Clean code is a feature.}}",
      "subtitle":"{{author:Omar Flores}}","accent":"aqua"},
-    {"kind":"credits","name":"02 / CTA","duration":3.5,"title":"SazarDev",
+    {"kind":"credits","name":"02 / CTA","duration":6,"title":"SazarDev",
      "subtitle":"@salazarprograms · Fiverr"}
   ],
   "output":"{{output:quote.mp4}}"
