@@ -27,22 +27,20 @@ func ComputeLayout(sz Size) Layout {
 	if scale < 0.45 {
 		scale = 0.45
 	}
-	margin := int(70 * scale)
-	if margin < 24 {
-		margin = 24
+	margin := int(80 * scale)
+	if margin < 32 {
+		margin = 32
 	}
-	top := int(112 * scale)
-	bottom := h - int(78*scale)
-	if bottom <= top {
-		top, bottom = int(float64(h)*0.12), int(float64(h)*0.88)
-	}
+	// The "frame" fields are now just the safe stage: no chrome is drawn.
+	top := int(float64(h) * 0.10)
+	bottom := int(float64(h) * 0.90)
 	return Layout{
 		W: w, H: h, Scale: scale, Margin: margin,
 		FrameX0: margin, FrameY0: top,
 		FrameX1: w - margin, FrameY1: bottom,
-		HeaderY: int(44 * scale), DividerY: int(78 * scale),
-		ContentX: margin + int(60*scale),
-		CenterY:  (top + bottom) / 2,
+		HeaderY: 0, DividerY: 0,
+		ContentX: margin + int(30*scale),
+		CenterY:  h / 2,
 		Portrait: float64(h)/float64(w) > 1.4,
 		Square:   float64(h)/float64(w) <= 1.4 && float64(h)/float64(w) >= 0.9,
 	}
@@ -55,11 +53,11 @@ type FontRamp struct {
 
 func (l Layout) Fonts() FontRamp {
 	return FontRamp{
-		Small:  16 * l.Scale,
-		Normal: 22 * l.Scale,
-		Code:   26 * l.Scale,
-		H2:     30 * l.Scale,
-		H1:     46 * l.Scale,
-		Hero:   52 * l.Scale,
+		Small:  17 * l.Scale,
+		Normal: 25 * l.Scale,
+		Code:   31 * l.Scale,
+		H2:     38 * l.Scale,
+		H1:     56 * l.Scale,
+		Hero:   70 * l.Scale,
 	}
 }

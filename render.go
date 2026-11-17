@@ -203,10 +203,7 @@ func drawFrame(p *painter, spec Spec, sceneIdx int, localT, totalT float64) {
 	p.ctx.DrawRectangle(0, 0, float64(p.lay.W), float64(p.lay.H))
 	p.ctx.Fill()
 
-	if spec.Effects.Chrome {
-		drawChrome(p, spec, sceneIdx)
-	}
-
+	// No window chrome, no borders, no hardcoded branding: flat stage only.
 	sc := spec.Scenes[sceneIdx]
 	fade := EasedReveal(spec, localT, 0) * EasedExit(spec, localT, sc.Duration)
 
@@ -245,9 +242,7 @@ func drawFrame(p *painter, spec Spec, sceneIdx int, localT, totalT float64) {
 		drawWipe(p, localT, sc.Duration)
 	}
 
-	if spec.Effects.Progress {
-		drawProgress(p, spec, totalT)
-	}
+	_ = totalT // progress bar is disabled in the minimal presentation
 }
 
 // drawScanline is a single flat 1px accent sweeping down at scene start.
@@ -319,19 +314,13 @@ func drawProgress(p *painter, spec Spec, t float64) {
 	if total <= 0 {
 		return
 	}
-	l, S := p.lay, p.lay.Scale
-	y := float64(l.H) - 52*S
-	p.line(float64(l.Margin), y, float64(l.W-l.Margin), y, "faint", 1)
+	l := p.lay
+	y := float64(l.H) - maxFloat(24*l.Scale, 14)
 	prog := Ease(spec.Effects.Easing, t/total)
-	p.ctx.SetColor(mustHex(p.theme.Green))
+	p.ctx.SetColor(Mix(p.theme.Color("green"), p.bg, 0.75))
 	p.ctx.SetLineWidth(2)
-	p.ctx.DrawLine(float64(l.Margin), y, float64(l.Margin)+float64(l.W-2*l.Margin)*prog, y)
+	p.ctx.DrawLine(0, y, float64(l.W)*prog, y)
 	p.ctx.Stroke()
-	left := spec.Branding.FooterLeft
-	p.text(left, float64(l.Margin), float64(l.H)-40*S, "small", "faint", 1)
-	tag := spec.Branding.FooterRight
-	tw := p.textWidth(tag, "small")
-	p.text(tag, float64(l.W-l.Margin)-tw, float64(l.H)-40*S, "small", "faint", 1)
 }
 
 func drawTerminal(p *painter, spec Spec, sc Scene, lt float64, fade float64, code bool) {
@@ -412,25 +401,24 @@ func drawTerminal(p *painter, spec Spec, sc Scene, lt float64, fade float64, cod
 
 func drawTitle(p *painter, spec Spec, sc Scene, fade float64) {
 	l, S := p.lay, p.lay.Scale
-	cx := float64(l.W) / 2
-	cy := float64(l.CenterY)
+	cx, cy := float64(l.W)/2, float64(l.H)/2
 	accent := sc.Accent
 	if accent == "" {
 		accent = "green"
 	}
 	if sc.Title != "" {
 		if spec.Effects.Tracking > 0 {
-			p.textTracked(sc.Title, cx, cy-40*S, "hero-bold", "fg", fade, spec.Effects.Tracking*S)
+			p.textTracked(sc.Title, cx, cy-60*S, "hero-bold", "fg", fade, spec.Effects.Tracking*S)
 		} else {
-			p.textAnchored(sc.Title, cx, cy-40*S, "hero-bold", "fg", fade)
+			p.textAnchored(sc.Title, cx, cy-60*S, "hero-bold", "fg", fade)
 		}
 	}
 	if sc.Subtitle != "" {
 		p.ctx.SetColor(Mix(p.theme.Color(accent), p.bg, fade))
 		p.ctx.SetLineWidth(1)
-		p.ctx.DrawLine(cx-200*S, cy+6*S, cx+200*S, cy+6*S)
+		p.ctx.DrawLine(cx-80*S, cy+6*S, cx+80*S, cy+6*S)
 		p.ctx.Stroke()
-		p.textAnchored(sc.Subtitle, cx, cy+70*S, "h2", accent, fade)
+		p.textAnchored(sc.Subtitle, cx, cy+80*S, "h2", accent, fade)
 	}
 }
 

@@ -14,7 +14,7 @@ var BuiltinTemplates = map[string]string{
 	"intro": `{
   "title": "{{title:SazarDev — Freelance Developer Intro}}",
   "format": "{{format:landscape}}",
-  "effects": {"typewriter":true,"cursor":true,"chrome":true,"progress":true,
+  "effects": {"typewriter":true,"cursor":true,"chrome":false,"progress":false,
               "fade":0.38,"slide":10,"easing":"easeOutCubic",
               "transition":"bgfade","stagger":0.4},
   "music": {"enabled":true,"volume":0.25,"progression":"{{mood:ambient}}","tempo":80},
@@ -38,9 +38,9 @@ var BuiltinTemplates = map[string]string{
 	"reel": `{
   "title": "{{title:SazarDev — Reel}}",
   "format": "portrait",
-  "effects": {"typewriter":true,"cursor":true,"chrome":true,"progress":true,
-              "fade":0.32,"slide":9,"easing":"easeOutQuint","transition":"wipe",
-              "scanline":true,"tracking":2.5,"stagger":0.35},
+  "effects": {"typewriter":true,"cursor":true,"chrome":false,"progress":false,
+              "fade":0.32,"slide":9,"easing":"easeOutQuint","transition":"none",
+              "scanline":false,"tracking":2.5,"stagger":0.35},
   "music": {"enabled":true,"volume":0.28,"progression":"{{mood:uplift}}","tempo":96},
   "scenes": [
     {"kind":"title","name":"01 / HOOK","duration":3,
@@ -59,7 +59,7 @@ var BuiltinTemplates = map[string]string{
 	"pitch": `{
   "title": "{{title:The Pitch}}",
   "format": "{{format:landscape}}",
-  "effects": {"typewriter":true,"cursor":false,"chrome":true,"progress":true,
+  "effects": {"typewriter":true,"cursor":false,"chrome":false,"progress":false,
               "fade":0.4,"slide":12,"easing":"easeOutQuint","tracking":2},
   "music": {"enabled":true,"volume":0.24,"progression":"noir","tempo":88},
   "scenes": [
@@ -77,7 +77,7 @@ var BuiltinTemplates = map[string]string{
 	"presentation": `{
   "title": "{{title:Presentation}}",
   "format": "{{format:landscape}}",
-  "effects": {"typewriter":false,"cursor":false,"chrome":true,"progress":true,
+  "effects": {"typewriter":false,"cursor":false,"chrome":false,"progress":false,
               "fade":0.35,"slide":10,"easing":"easeInOut","tracking":1.5},
   "music": {"enabled":true,"volume":0.18,"progression":"minimal","tempo":72},
   "scenes": [
@@ -95,7 +95,7 @@ var BuiltinTemplates = map[string]string{
 	"image-showcase": `{
   "title": "{{title:Work Showcase}}",
   "format": "{{format:landscape}}",
-  "effects": {"typewriter":false,"cursor":false,"chrome":true,"progress":true,
+  "effects": {"typewriter":false,"cursor":false,"chrome":false,"progress":false,
               "fade":0.5,"slide":10,"easing":"easeOutQuint"},
   "music": {"enabled":true,"volume":0.22,"progression":"ambient","tempo":76},
   "scenes": [
@@ -110,7 +110,7 @@ var BuiltinTemplates = map[string]string{
 	"explainer": `{
   "title": "{{title:Big O Notation, Visually}}",
   "format": "{{format:landscape}}",
-  "effects": {"typewriter":true,"cursor":true,"chrome":true,"progress":true,
+  "effects": {"typewriter":true,"cursor":true,"chrome":false,"progress":false,
               "fade":0.4,"slide":12,"easing":"easeOutQuint","tracking":1.5},
   "music": {"enabled":true,"volume":0.2,"progression":"minimal","tempo":72},
   "scenes": [
@@ -148,7 +148,7 @@ var BuiltinTemplates = map[string]string{
 	"tutorial": `{
   "title": "{{title:Understanding Channels in Go}}",
   "format": "{{format:landscape}}",
-  "effects": {"typewriter":true,"cursor":true,"chrome":true,"progress":true,
+  "effects": {"typewriter":true,"cursor":true,"chrome":false,"progress":false,
               "fade":0.36,"slide":10,"easing":"easeOutCubic","stagger":0.35},
   "music": {"enabled":true,"volume":0.2,"progression":"minimal","tempo":76},
   "scenes": [
@@ -178,7 +178,7 @@ var BuiltinTemplates = map[string]string{
 	"theory": `{
   "title": "{{title:Software Architecture Basics}}",
   "format": "{{format:landscape}}",
-  "effects": {"typewriter":false,"cursor":false,"chrome":true,"progress":true,
+  "effects": {"typewriter":false,"cursor":false,"chrome":false,"progress":false,
               "fade":0.45,"slide":12,"easing":"easeInOut","tracking":1.5},
   "music": {"enabled":true,"volume":0.18,"progression":"ambient","tempo":68},
   "scenes": [
@@ -203,7 +203,7 @@ var BuiltinTemplates = map[string]string{
 	"quote": `{
   "title": "{{title:Quote}}",
   "format": "{{format:square}}",
-  "effects": {"typewriter":true,"cursor":false,"chrome":true,"progress":true,
+  "effects": {"typewriter":true,"cursor":false,"chrome":false,"progress":false,
               "fade":0.5,"slide":14,"easing":"easeOutQuint","tracking":2.5},
   "music": {"enabled":true,"volume":0.2,"progression":"minimal","tempo":68},
   "scenes": [

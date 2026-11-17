@@ -2,22 +2,21 @@ package framekit
 
 import "math"
 
-// drawFormula renders an equation, a plain-English caption and an ordered
-// derivation. Layout is deliberately hierarchical: one hero equation, one
-// quiet explanation, then a tidy numbered list of steps.
+// drawFormula is a minimal, typography-first explanation scene: one large
+// equation, one quiet caption, then a small ordered derivation.
 func drawFormula(p *painter, spec Spec, sc Scene, lt, fade float64) {
 	if sc.Formula == nil || sc.Formula.Expr == "" {
 		return
 	}
-	l, S := p.lay, p.lay.Scale
-	cx := float64(l.W) / 2
-	frameTop := float64(l.FrameY0)
+	l := p.lay
+	W, H, S := float64(l.W), float64(l.H), l.Scale
+	cx := W / 2
 
 	if sc.Title != "" {
-		p.textAnchored(sc.Title, cx, frameTop+72*S, "h2-bold", "fg", fade)
-		p.ctx.SetColor(Mix(p.theme.Color("green"), p.bg, fade*0.9))
+		p.textAnchored(sc.Title, cx, H*0.16, "h1-bold", "fg", fade)
+		p.ctx.SetColor(Mix(p.theme.Color("green"), p.bg, fade*0.85))
 		p.ctx.SetLineWidth(1)
-		p.ctx.DrawLine(cx-70*S, frameTop+100*S, cx+70*S, frameTop+100*S)
+		p.ctx.DrawLine(cx-50*S, H*0.25, cx+50*S, H*0.25)
 		p.ctx.Stroke()
 	}
 
@@ -36,21 +35,20 @@ func drawFormula(p *painter, spec Spec, sc Scene, lt, fade float64) {
 			}
 			visible = items[:n]
 		}
-		// Hero equation: large, airy, single focal point.
-		drawMathFace(p, visible, cx-mathWidthFace(p, visible, "h2")/2,
-			frameTop+190*S, a, "h2")
+		// Hero equation: the single focal point, much larger than body text.
+		face := "h1"
+		drawMathFace(p, visible, cx-mathWidthFace(p, visible, face)/2, H*0.38, a, face)
 	}
 
 	if sc.Formula.Caption != "" {
 		ca := fade * EasedReveal(spec, lt, sc.Formula.At+0.8)
 		if ca > 0.01 {
-			p.textAnchored(sc.Formula.Caption, cx, frameTop+250*S, "normal", "dim", ca)
+			p.textAnchored(sc.Formula.Caption, cx, H*0.51, "normal", "dim", ca)
 		}
 	}
 
 	if len(sc.Formula.Steps) > 0 {
-		p.line(float64(l.FrameX0)+80*S, frameTop+290*S,
-			float64(l.FrameX1)-80*S, frameTop+290*S, "faint", fade*0.8)
+		p.line(W*0.16, H*0.585, W*0.84, H*0.585, "faint", fade*0.7)
 	}
 
 	for i, st := range sc.Formula.Steps {
@@ -62,17 +60,15 @@ func drawFormula(p *painter, spec Spec, sc Scene, lt, fade float64) {
 		if sa <= 0.01 {
 			continue
 		}
-		y := frameTop + (330+float64(i)*78)*S
-		x := float64(l.FrameX0) + 80*S
-		// ordered marker
+		y := H*0.64 + float64(i)*H*0.105
+		x := W * 0.18
 		p.ctx.SetColor(Mix(p.theme.Color("green"), p.bg, sa))
-		p.ctx.DrawRectangle(x, y-16*S, 8*S, 8*S)
+		p.ctx.DrawRectangle(x, y-16*S, 9*S, 9*S)
 		p.ctx.Fill()
-		p.text("0"+intStr(i+1), x+20*S, y, "small", "faint", sa*0.9)
-		// equation and its plain-English note stacked, left aligned
-		drawMathAt(p, parseMath(st.Expr), x+80*S, y, sa)
+		p.text("0"+intStr(i+1), x+24*S, y, "small", "faint", sa*0.9)
+		drawMathFace(p, parseMath(st.Expr), x+96*S, y, sa, "h2")
 		if st.Note != "" {
-			p.text(st.Note, x+80*S, y+32*S, "small", "dim", sa*0.9)
+			p.text(st.Note, x+96*S, y+40*S, "small", "dim", sa*0.9)
 		}
 	}
 }

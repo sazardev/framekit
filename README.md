@@ -223,6 +223,15 @@ cd site && python3 -m http.server 8080
 It deploys automatically to **GitHub Pages** via
 `.github/workflows/deploy-pages.yml`: https://sazardev.github.io/framekit/
 
+## Minimal by default
+
+Presentations are deliberately **chrome-free**: no window frame, no corner
+dots, no borders, no header/footer labels and no hardcoded branding. The stage
+is a flat background with generous margins, large type and one short accent
+rule as the only decoration. `effects.chrome`, `effects.progress`,
+`effects.scanline` and `effects.transition` remain available for other styles,
+but the shipped templates keep them off.
+
 ## Interfaces
 
 Three ways to use the same engine:

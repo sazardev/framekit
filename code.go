@@ -176,13 +176,17 @@ func drawCode(p *painter, spec Spec, sc Scene, lt, fade float64) {
 		return
 	}
 	l, S := p.lay, p.lay.Scale
+	W, H := float64(l.W), float64(l.H)
 	lines := strings.Split(strings.ReplaceAll(sc.Code.Content, "\t", "    "), "\n")
-	x := float64(l.ContentX)
-	top := float64(l.FrameY0) + 84*S
-	lineH := 32 * S
+	x := W * 0.16
+	top := H * 0.30
+	lineH := 46 * S
 	if sc.Title != "" {
-		p.text(sc.Title, x, top-28*S, "h2-bold", "fg", fade)
-		p.line(x, top-12*S, float64(l.FrameX1)-40*S, top-12*S, "faint", fade*0.8)
+		p.text(sc.Title, x, H*0.18, "h1-bold", "fg", fade)
+		p.ctx.SetColor(Mix(p.theme.Color("green"), p.bg, fade*0.85))
+		p.ctx.SetLineWidth(1)
+		p.ctx.DrawLine(x, H*0.225, x+90*S, H*0.225)
+		p.ctx.Stroke()
 	}
 	highlight := map[int]bool{}
 	for _, n := range sc.Code.Highlight {
@@ -190,7 +194,7 @@ func drawCode(p *painter, spec Spec, sc Scene, lt, fade float64) {
 	}
 	gutter := 0.0
 	if sc.Code.LineNumbers {
-		gutter = 46 * S
+		gutter = 72 * S
 	}
 	baseAt := sc.Code.At
 	for i, line := range lines {
@@ -201,12 +205,12 @@ func drawCode(p *painter, spec Spec, sc Scene, lt, fade float64) {
 		}
 		y := top + float64(i)*lineH
 		if highlight[i+1] {
-			p.ctx.SetColor(Mix(p.theme.Color("soft"), p.bg, a*0.8))
-			p.ctx.DrawRectangle(x-10*S, y-24*S, float64(l.FrameX1-l.FrameX0)-70*S, lineH)
+			p.ctx.SetColor(Mix(p.theme.Color("soft"), p.bg, a*0.7))
+			p.ctx.DrawRectangle(x-20*S, y-30*S, W*0.74, lineH)
 			p.ctx.Fill()
 		}
 		if sc.Code.LineNumbers {
-			p.text(rightPad(i+1, len(lines)), x, y, "small", "faint", a*0.8)
+			p.text(rightPad(i+1, len(lines)), x, y, "normal", "faint", a*0.9)
 		}
 		p.ctx.SetFontFace(p.faces["code"])
 		cx := x + gutter
