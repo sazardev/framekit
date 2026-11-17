@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Framekit — Declarative 1080p60 video framework in Go</title>
+<meta name="description" content="Framekit is a local-first Go framework for generating 1080p60 videos with the gruvbox design system. Templates, linter, guardrails, synthesized music, CLI, TUI and desktop studio.">
+<meta property="og:title" content="Framekit — 1080p60 video framework">
+<meta property="og:description" content="Declarative video generation in Go. Flat design, Geist Mono, music, guardrails.">
+<meta property="og:image" content="assets/cli.png">
+<link rel="icon" href="assets/og.png">
+<link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><span class="sq"></span> FRAMEKIT</a>
+    <nav aria-label="Main">
+      <a href="#features">Features</a>
+      <a href="#interfaces">Interfaces</a>
+      <a href="#quality">Quality</a>
+      <a href="#spec">Spec</a>
+    </nav>
+    <a class="btn-ghost" href="https://github.com/sazardev/framekit">GitHub ↗</a>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" id="top">
+  <div class="wrap">
+    <p class="eyebrow">1080P60 · LOCAL FIRST · WRITTEN IN GO</p>
+    <h1>Video, as code.</h1>
+    <p class="lede">A declarative framework that renders flat-design videos with your design system. Geist Mono, gruvbox, synthesized music, templates, guardrails — and no cloud required.</p>
+
+    <div class="code" data-copy>
+      <div class="code-top"><span>terminal</span><button class="copy" type="button">copy</button></div>
+      <pre><code><span class="g">$</span> go install github.com/sazardev/framekit/cmd/framekit@latest
+<span class="g">$</span> framekit render --spec intro.json --quality high
+<span class="a">  rendered: intro.mp4 · 1920x1080 · 60fps · 881 KB</span></code></pre>
+    </div>
+
+    <div class="cta">
+      <a class="btn" href="https://github.com/sazardev/framekit">Get the framework</a>
+      <a class="btn-ghost" href="#interfaces">See the interfaces</a>
+    </div>
+    <p class="micro">v0.2.0 · MIT · ffmpeg required · renders entirely on your machine</p>
+  </div>
+</section>
+
+<section id="features" class="panel">
+  <div class="wrap">
+    <p class="kicker">01 / WHY</p>
+    <h2>Everything you need. Nothing you don't.</h2>
+    <div class="grid-3">
+      <article class="card"><h3>1080p60 by default</h3><p>Native 1920×1080 at 60 fps in every quality profile. x264 animation tune, capped bitrate and level 4.2 — safe for portrait too.</p></article>
+      <article class="card"><h3>Your design system</h3><p>Gruvbox palette and embedded Geist Mono match sazardev.stream exactly. Eight presets or full hex overrides. Flat: no gradients, shadows or radii.</p></article>
+      <article class="card"><h3>Music &amp; voices</h3><p>Original ambient tracks synthesized in pure Go. Optional Cloudflare Workers AI voices, downloaded and mixed locally. No samples, no licensing.</p></article>
+      <article class="card"><h3>Templates</h3><p>Six production-ready specs — intro, reel, pitch, presentation, image showcase, quote — with <code>{{var:default}}</code> substitution.</p></article>
+      <article class="card"><h3>Linter &amp; guardrails</h3><p>Real text-overflow measurement, WCAG contrast, pacing, forbidden words, size estimates and asset policy. Strict by default in every render.</p></article>
+      <article class="card"><h3>Agentic by design</h3><p>JSON Schema, a deterministic <code>plan</code> from natural language, batch variant generation and skill docs for coding agents.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="interfaces" class="panel alt">
+  <div class="wrap">
+    <p class="kicker">02 / INTERFACES</p>
+    <h2>One engine, three ways in.</h2>
+    <div class="shots">
+      <figure><img src="assets/cli.png" alt="Framekit CLI rendering a video"><figcaption><strong>CLI</strong> — scriptable, lint-first</figcaption></figure>
+      <figure><img src="assets/tui.png" alt="Framekit interactive terminal UI"><figcaption><strong>TUI</strong> — keyboard-driven studio</figcaption></figure>
+      <figure><img src="assets/studio.png" alt="Framekit local desktop studio"><figcaption><strong>Desktop</strong> — local web studio</figcaption></figure>
+    </div>
+    <div class="code small" data-copy>
+      <div class="code-top"><span>install the apps</span><button class="copy" type="button">copy</button></div>
+      <pre><code><span class="g">$</span> framekit tui
+<span class="g">$</span> framekit desktop        <span class="f"># opens 127.0.0.1:8239</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="quality" class="panel">
+  <div class="wrap">
+    <p class="kicker">03 / QUALITY</p>
+    <h2>Crisp. Small. Fast.</h2>
+    <p class="section-lede">Measured on the 25-second intro at 60 fps (1,500 frames). All profiles are faststart H.264 + AAC.</p>
+    <table>
+      <thead><tr><th>Profile</th><th>Resolution</th><th>CRF</th><th>Preset</th><th>Bitrate cap</th><th>Real size</th></tr></thead>
+      <tbody>
+        <tr><td>draft</td><td>960×540@60</td><td>32</td><td>veryfast</td><td>800k</td><td>329 KB</td></tr>
+        <tr><td>standard</td><td>1920×1080@60</td><td>27</td><td>veryfast</td><td>1.8M</td><td>—</td></tr>
+        <tr><td>social</td><td>1920×1080@60</td><td>25</td><td>veryfast</td><td>1.5M</td><td>—</td></tr>
+        <tr class="hi"><td>high</td><td>1920×1080@60</td><td>22</td><td>veryfast</td><td>3M</td><td>881 KB</td></tr>
+        <tr><td>master</td><td>1920×1080@60</td><td>18</td><td>faster</td><td>6M</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="spec" class="panel alt">
+  <div class="wrap two-col">
+    <div>
+      <p class="kicker">04 / SPEC</p>
+      <h2>Declarative, inspectable, reusable.</h2>
+      <p class="section-lede">A spec is plain JSON. Agents can emit it from the published schema, humans can edit it by hand, and the linter checks it before a single frame is drawn.</p>
+      <ul class="ticks">
+        <li>Scene kinds: terminal, code, title, stats, credits, image, slide</li>
+        <li>Effects: easing, transitions, scanline, tracking, stagger</li>
+        <li>Music progressions and tempo; opt-in AI voices</li>
+        <li>Configurable rules and security in <code>.framekit.json</code></li>
+      </ul>
+    </div>
+    <div class="code">
+      <div class="code-top"><span>intro.json</span><button class="copy" type="button">copy</button></div>
+      <pre><code>{
+  <span class="b">"format"</span>: <span class="y">"landscape"</span>,
+  <span class="b">"effects"</span>: { <span class="b">"easing"</span>: <span class="y">"easeOutQuint"</span> },
+  <span class="b">"music"</span>: { <span class="b">"progression"</span>: <span class="y">"ambient"</span> },
+  <span class="b">"scenes"</span>: [
+    { <span class="b">"kind"</span>: <span class="y">"title"</span>, <span class="b">"title"</span>: <span class="y">"Omar Flores"</span> },
+    { <span class="b">"kind"</span>: <span class="y">"stats"</span>, <span class="b">"stats"</span>: [...] }
+  ]
+}</code></pre>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div><span class="sq"></span> <strong>FRAMEKIT</strong> <span class="f">· built by SazarDev</span></div>
+    <div class="links"><a href="https://github.com/sazardev/framekit">Source</a><a href="https://github.com/sazardev/framekit/releases">Releases</a><a href="https://sazardev.stream">Portfolio</a></div>
+  </div>
+</footer>
+</body>
+</html>

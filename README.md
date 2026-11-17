@@ -163,6 +163,18 @@ Ready-to-use agent skills live in the repo:
 
 `framekit skills --show` prints both from any directory inside the repo.
 
+## Website
+
+A static landing page lives in `site/` (plain HTML/CSS/JS, no build step).
+Preview locally:
+
+```bash
+cd site && python3 -m http.server 8080
+```
+
+It deploys automatically to **GitHub Pages** via
+`.github/workflows/deploy-pages.yml`: https://sazardev.github.io/framekit/
+
 ## Interfaces
 
 Three ways to use the same engine:
