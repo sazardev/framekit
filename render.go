@@ -29,7 +29,17 @@ type painter struct {
 // optional voices, muxed by ffmpeg. Everything local unless a voice provider
 // is explicitly configured.
 func Render(spec Spec, out string) error {
+	return RenderWithConfig(spec, out, DefaultConfig(), "")
+}
+
+// RenderWithConfig renders using a quality profile from the guardrail config.
+func RenderWithConfig(spec Spec, out string, cfg Config, quality string) error {
+	SanitizeSpec(&spec)
 	if err := spec.Normalize(); err != nil {
+		return err
+	}
+	q, err := cfg.QualityFor(quality)
+	if err != nil {
 		return err
 	}
 	if out == "" {
@@ -53,7 +63,7 @@ func Render(spec Spec, out string) error {
 	defer os.RemoveAll(tmp)
 
 	silent := filepath.Join(tmp, "silent.mp4")
-	if err := renderSilent(spec, ffmpeg, silent); err != nil {
+	if err := renderSilent(spec, ffmpeg, silent, q); err != nil {
 		return err
 	}
 
@@ -82,11 +92,16 @@ func Render(spec Spec, out string) error {
 	if len(audios) == 0 {
 		return os.Rename(silent, out)
 	}
-	return mux(ffmpeg, silent, audios, spec, out)
+	return mux(ffmpeg, silent, audios, spec, out, q)
 }
 
-func renderSilent(spec Spec, ffmpeg, out string) error {
-	lay := ComputeLayout(*spec.Size)
+func renderSilent(spec Spec, ffmpeg, out string, q Quality) error {
+	fps := q.FPS
+	if fps <= 0 {
+		fps = spec.FPS
+	}
+	size := EffectiveSize(spec, q)
+	lay := ComputeLayout(size)
 	faces, err := loadFaces(lay.Fonts(), spec.Fonts)
 	if err != nil {
 		return err
@@ -94,9 +109,12 @@ func renderSilent(spec Spec, ffmpeg, out string) error {
 	cmd := exec.Command(ffmpeg, "-y", "-loglevel", "error",
 		"-f", "rawvideo", "-pix_fmt", "rgba",
 		"-s", fmt.Sprintf("%dx%d", lay.W, lay.H),
-		"-r", fmt.Sprint(spec.FPS), "-i", "-",
-		"-an", "-c:v", "libx264", "-preset", "medium", "-crf", "19",
-		"-pix_fmt", "yuv420p", out)
+		"-r", fmt.Sprint(fps), "-i", "-",
+		"-an", "-c:v", "libx264",
+		"-preset", q.Preset, "-crf", fmt.Sprint(q.CRF),
+		"-tune", q.Tune, "-profile:v", q.Profile, "-level", q.Level,
+		"-maxrate", q.MaxRate, "-bufsize", q.BufSize,
+		"-pix_fmt", "yuv420p", "-movflags", "+faststart", out)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return err
@@ -109,10 +127,10 @@ func renderSilent(spec Spec, ffmpeg, out string) error {
 		return err
 	}
 
-	total := int(math.Ceil(spec.DurationSeconds() * float64(spec.FPS)))
+	total := int(math.Ceil(spec.DurationSeconds() * float64(fps)))
 	sceneStart, sceneIdx := 0.0, 0
 	for i := 0; i < total; i++ {
-		t := float64(i) / float64(spec.FPS)
+		t := float64(i) / float64(fps)
 		for sceneIdx < len(spec.Scenes)-1 && t >= sceneStart+spec.Scenes[sceneIdx].Duration {
 			sceneStart += spec.Scenes[sceneIdx].Duration
 			sceneIdx++
@@ -203,6 +221,10 @@ func drawFrame(p *painter, spec Spec, sceneIdx int, localT, totalT float64) {
 		drawStats(p, spec, sc, localT, fade)
 	case "credits":
 		drawCredits(p, spec, sc, fade)
+	case "image":
+		drawImage(p, spec, sc, localT, fade)
+	case "slide":
+		drawSlide(p, spec, sc, localT, fade)
 	case "code":
 		drawTerminal(p, spec, sc, localT, fade, true)
 	default:

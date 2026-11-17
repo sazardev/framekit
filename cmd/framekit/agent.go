@@ -159,7 +159,7 @@ func planFromBrief(brief string) framekit.Spec {
 				{Name: "Flutter / Dart", Note: "mobile apps"},
 				{Name: "React / TypeScript", Note: "web apps"},
 				{Name: "Go / Rust", Note: "CLIs & systems"},
-				{Name: "Firebase / PostgreSQL", Note: "data & infra"},
+				{Name: "Firebase / Postgres", Note: "data & infra"},
 			},
 		})
 	}

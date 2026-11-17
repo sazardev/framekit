@@ -33,7 +33,7 @@
         { "name": "React / TypeScript", "note": "web apps", "at": 1.1 },
         { "name": "Go / Rust", "note": "CLIs & systems", "at": 1.5 },
         { "name": "Python", "note": "services & AI", "at": 1.9 },
-        { "name": "Firebase / PostgreSQL / Docker", "note": "data & infra", "at": 2.3 }
+        { "name": "Firebase / Postgres", "note": "data & infra", "at": 2.3 }
       ]
     },
     {

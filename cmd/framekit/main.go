@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -40,6 +39,20 @@ func main() {
 		themesCmd(os.Args[2:])
 	case "skills":
 		skillsCmd(os.Args[2:])
+	case "lint":
+		lintCmd(os.Args[2:])
+	case "analyze":
+		analyzeCmd(os.Args[2:])
+	case "templates":
+		templatesCmd(os.Args[2:])
+	case "use":
+		useCmd(os.Args[2:])
+	case "generate":
+		generateCmd(os.Args[2:])
+	case "quality":
+		qualityCmd(os.Args[2:])
+	case "config":
+		configCmd(os.Args[2:])
 	case "version":
 		fmt.Println("framekit", version)
 	case "-h", "--help", "help":
@@ -55,10 +68,17 @@ func usage() {
 	fmt.Print(`framekit — declarative video framework (Go, local-first, gruvbox)
 
 Usage:
-  framekit render   --spec spec.json [--out video.mp4]
+  framekit render   --spec spec.json [--out video.mp4] [--quality high] [--no-strict]
+  framekit lint     --spec spec.json [--json]
+  framekit analyze  --spec spec.json
+  framekit templates
+  framekit use      --template reel --vars vars.json --out spec.json
+  framekit generate --spec spec.json --count 3 --seed 42 --dir variants [--render]
   framekit plan     --brief "30s portrait reel about my Flutter apps, noir music"
   framekit validate --spec spec.json
   framekit describe --spec spec.json
+  framekit quality
+  framekit config   [--out .framekit.json]
   framekit schema                 # JSON Schema of the spec
   framekit agent                  # full contract + rules for AI agents
   framekit skills [--show]        # agent skill documents
@@ -67,6 +87,7 @@ Usage:
   framekit presets
   framekit version
 
+Quality: draft, standard, high, social, master.
 Formats: landscape (1280x720), square (1080x1080), portrait (1080x1920).
 `)
 }
@@ -75,27 +96,45 @@ func renderCmd(args []string) {
 	fs := flag.NewFlagSet("render", flag.ExitOnError)
 	specPath := fs.String("spec", "", "path to JSON spec")
 	out := fs.String("out", "", "output .mp4 path")
+	quality := fs.String("quality", "", "quality profile")
+	configPath := fs.String("config", "", "guardrail config path")
+	noStrict := fs.Bool("no-strict", false, "render even if lint reports errors")
 	_ = fs.Parse(args)
-	if *specPath == "" {
-		fmt.Fprintln(os.Stderr, "--spec is required")
-		os.Exit(1)
+	spec := loadSpec(*specPath)
+	cfg := loadCfg(*configPath)
+	framekit.SanitizeSpec(&spec)
+	if err := spec.Normalize(); err != nil {
+		fatal(err)
 	}
-	data, err := os.ReadFile(*specPath)
+
+	// Guardrails: analyze + lint before touching the encoder.
+	a, err := framekit.Analyze(spec, cfg, *quality)
 	if err != nil {
 		fatal(err)
 	}
-	var spec framekit.Spec
-	if err := json.Unmarshal(data, &spec); err != nil {
-		fatal(err)
+	findings := append(framekit.Lint(spec, cfg, *quality, a), framekit.SecurityAudit(spec, cfg)...)
+	if !*noStrict {
+		for _, f := range findings {
+			if f.Severity == framekit.SevError {
+				fatal(fmt.Errorf("lint error [%s] scene %d: %s (use --no-strict to override)", f.Code, f.Scene, f.Message))
+			}
+		}
+	} else {
+		for _, f := range findings {
+			if f.Severity == framekit.SevError {
+				fmt.Fprintln(os.Stderr, "warning: overriding", f.Code)
+			}
+		}
 	}
-	if err := framekit.Render(spec, *out); err != nil {
+
+	if err := framekit.RenderWithConfig(spec, *out, cfg, *quality); err != nil {
 		fatal(err)
 	}
 	dest := *out
 	if dest == "" {
 		dest = spec.Output
 	}
-	fmt.Println("rendered:", dest)
+	fmt.Printf("rendered: %s (%s, %.1fs, ~%.2f MB)\n", dest, a.Quality, a.Duration, a.EstimatedMB)
 }
 
 func initCmd(args []string) {

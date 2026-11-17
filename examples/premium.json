@@ -38,7 +38,7 @@
         { "name": "Flutter / Dart", "note": "mobile apps" },
         { "name": "React / TypeScript", "note": "web apps" },
         { "name": "Go / Rust", "note": "systems & CLIs" },
-        { "name": "Firebase / PostgreSQL", "note": "data & infra" }
+        { "name": "Firebase / Postgres", "note": "data & infra" }
       ]
     },
     {

@@ -37,6 +37,84 @@ Requires `ffmpeg` in `PATH` (only for encoding/muxing).
 ./framekit agent                    # spec contract for AI agents
 ```
 
+## Platform: templates, rules, quality and safety
+
+### Templates
+
+Six production templates with `{{variable}}` substitution (`{{var:default}}` works too):
+
+```bash
+./framekit templates
+./framekit use --template reel --vars vars.json --out spec.json
+```
+
+Built-ins: `intro`, `reel`, `pitch`, `presentation`, `image-showcase`, `quote`.
+Custom templates go in `.framekit.json` under `"templates"`.
+
+### Quality / compression
+
+Profiles are tuned for flat text graphics (x264 `animation` tune + capped bitrate):
+
+```bash
+./framekit quality
+./framekit render --spec spec.json --quality draft     # 640x360, 24fps, crf 30
+./framekit render --spec spec.json --quality social    # 720p, 700k cap
+./framekit render --spec spec.json --quality high      # 720p, crf 20 (default)
+./framekit render --spec spec.json --quality master    # 720p60, crf 16
+```
+
+Measured on the 25s intro: **draft 267 KB · social 530 KB · high 762 KB**.
+`draft` renders in ~4s. All outputs are faststart H.264 + AAC.
+
+### Linter & analyzer
+
+`render` runs the guardrails automatically. Inspect them explicitly with:
+
+```bash
+./framekit lint --spec spec.json [--json]      # errors exit 2
+./framekit analyze --spec spec.json            # full metrics as JSON
+```
+
+Checks include duration bounds, line/note length, **real text overflow measured
+with the actual font**, item count, WCAG contrast, scene density, `at` timing,
+forbidden words, estimated file size, asset paths and remote-fetch policy.
+Use `--no-strict` only when you knowingly override a rule.
+
+### Guardrails & security
+
+```bash
+./framekit config --out .framekit.json   # writes the full policy
+```
+
+`.framekit.json` defines `rules` (duration, formats, themes, contrast, branding,
+music, size cap...) and `security`:
+
+- `allowedAssetRoots` (default `"."`) — rejects traversal and out-of-tree files
+- `denyExtensions` — blocks executables/scripts as assets
+- `maxAssetSizeMB` — asset size cap
+- `allowRemoteFetch` (default `false`) — Cloudflare voices need explicit opt-in
+- text sanitization strips control characters from every agent-generated string
+
+### Images, slides and presentations
+
+```json
+{"kind":"image","image":{"path":"cover.png","fit":"cover","zoom":0.08,"border":true},
+ "title":"My project","subtitle":"Built with framekit"}
+```
+
+`image` supports `cover|contain`, a slow Ken Burns `zoom`, horizontal `pan` and a
+1px border. `slide` renders presentation slides: title, accent rule and square
+bullets. See the `image-showcase` and `presentation` templates.
+
+### Batch generation
+
+```bash
+./framekit generate --spec spec.json --count 3 --seed 42 --dir variants
+./framekit generate --spec spec.json --count 3 --render --quality social
+```
+
+Deterministic variants (theme, easing, progression, pacing) for A/B testing.
+
 ## Premium & agentic
 
 ```bash

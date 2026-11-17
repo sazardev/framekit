@@ -23,6 +23,11 @@ Repo: `/home/sazar/Projects/framekit` (module `github.com/sazardev/framekit`).
 3. **Never wrap lines.** Keep every `text`/`note` short; the renderer does not wrap.
 4. **Validate before rendering.** Always run `validate` and `describe` first.
 5. **15-60 seconds.** Fiverr/YouTube need at least ~20s; keep it in range.
+6. **Start from a template or `plan`, never from a blank spec.**
+7. **Pick quality deliberately**: `draft` for previews, `social` for platform
+   caps, `high` for delivery, `master` only when re-encoding later.
+8. **Assets must be inside `allowedAssetRoots`** (default: repo root). Remote
+   fetches are disabled unless the user opts in.
 
 ## Tool chain
 
@@ -30,12 +35,20 @@ Repo: `/home/sazar/Projects/framekit` (module `github.com/sazardev/framekit`).
 cd /home/sazar/Projects/framekit
 go build -o framekit ./cmd/framekit      # only needed once
 ./framekit schema                         # machine-readable contract
+./framekit templates                      # built-in templates
 ./framekit themes                         # available palettes
+./framekit quality                        # quality/compression profiles
 ./framekit plan --brief "..." --out spec.json
+./framekit use --template reel --vars vars.json --out spec.json
+./framekit lint --spec spec.json          # guardrails (errors exit 2)
+./framekit analyze --spec spec.json       # metrics as JSON
 ./framekit validate --spec spec.json
 ./framekit describe --spec spec.json
-./framekit render --spec spec.json --out video.mp4
+./framekit generate --spec spec.json --count 3 --seed 42 --dir variants
+./framekit render --spec spec.json --out video.mp4 --quality high
 ```
+
+`render` lints automatically. Never use `--no-strict` without the user's OK.
 
 If `ffmpeg` is missing, stop and tell the user.
 

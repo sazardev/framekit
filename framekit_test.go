@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"math"
+	"strings"
 	"testing"
 )
 
@@ -95,6 +96,70 @@ func TestTypedAndReveal(t *testing.T) {
 	}
 	if got := reveal(0.1, 0, 0.5); got <= 0 || got >= 1 {
 		t.Fatalf("reveal mid = %v", got)
+	}
+}
+
+func TestTemplates(t *testing.T) {
+	cfg := DefaultConfig()
+	for _, name := range []string{"intro", "reel", "pitch", "presentation", "quote", "image-showcase"} {
+		s, err := RenderTemplate(name, map[string]string{}, cfg)
+		if err != nil {
+			t.Fatalf("template %s: %v", name, err)
+		}
+		if len(s.Scenes) == 0 {
+			t.Fatalf("template %s has no scenes", name)
+		}
+	}
+	s, err := RenderTemplate("quote", map[string]string{"quote": "Ship it."}, cfg)
+	if err != nil || s.Scenes[0].Title != "Ship it." {
+		t.Fatalf("variable substitution failed: %+v %v", s, err)
+	}
+}
+
+func TestLintAndSecurity(t *testing.T) {
+	cfg := DefaultConfig()
+	s := Spec{
+		Title:  "Test",
+		Scenes: []Scene{{Kind: "terminal", Duration: 2, Lines: []Line{{Text: strings.Repeat("x", 80)}}}},
+	}
+	if err := s.Normalize(); err != nil {
+		t.Fatal(err)
+	}
+	a, err := Analyze(s, cfg, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	findings := Lint(s, cfg, "", a)
+	codes := map[string]bool{}
+	for _, f := range findings {
+		codes[f.Code] = true
+	}
+	if !codes["DURATION_SHORT"] || !codes["LINE_TOO_LONG"] {
+		t.Fatalf("missing findings: %+v", codes)
+	}
+	sec := Spec{Fonts: FontConfig{Regular: "../outside.ttf"}}
+	if got := SecurityAudit(sec, cfg); len(got) == 0 {
+		t.Fatal("expected traversal finding")
+	}
+	if got := SanitizeText("hello\x00world\n\n\nnext"); got != "hello world\n\nnext" {
+		t.Fatalf("sanitize = %q", got)
+	}
+}
+
+func TestQualityProfiles(t *testing.T) {
+	cfg := DefaultConfig()
+	for _, n := range []string{"draft", "standard", "high", "social", "master"} {
+		if _, err := cfg.QualityFor(n); err != nil {
+			t.Fatal(err)
+		}
+	}
+	spec := Spec{Format: "landscape", Size: &Size{W: 1280, H: 720}, Scenes: []Scene{{Duration: 1}}}
+	if err := spec.Normalize(); err != nil {
+		t.Fatal(err)
+	}
+	got := EffectiveSize(spec, QualityProfiles["draft"])
+	if got.W != 640 || got.H != 360 {
+		t.Fatalf("draft size = %+v", got)
 	}
 }
 

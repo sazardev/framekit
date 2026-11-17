@@ -70,16 +70,28 @@ type Effects struct {
 
 // Scene is one "slide". Kind: terminal | title | stats | credits | code.
 type Scene struct {
-	Kind     string  `json:"kind"`
-	Name     string  `json:"name,omitempty"` // eyebrow label, e.g. "03 / PROJECTS"
-	Duration float64 `json:"duration"`
-	Command  string  `json:"command,omitempty"`
-	Title    string  `json:"title,omitempty"`
-	Subtitle string  `json:"subtitle,omitempty"`
-	Lines    []Line  `json:"lines,omitempty"`
-	Stats    []Stat  `json:"stats,omitempty"`
-	Items    []Item  `json:"items,omitempty"`
-	Accent   string  `json:"accent,omitempty"` // per-scene accent override
+	Kind     string    `json:"kind"`
+	Name     string    `json:"name,omitempty"` // eyebrow label, e.g. "03 / PROJECTS"
+	Duration float64   `json:"duration"`
+	Command  string    `json:"command,omitempty"`
+	Title    string    `json:"title,omitempty"`
+	Subtitle string    `json:"subtitle,omitempty"`
+	Lines    []Line    `json:"lines,omitempty"`
+	Stats    []Stat    `json:"stats,omitempty"`
+	Items    []Item    `json:"items,omitempty"`
+	Accent   string    `json:"accent,omitempty"` // per-scene accent override
+	Image    *ImageRef `json:"image,omitempty"`
+}
+
+// ImageRef draws a local image in an "image" scene. Fit: cover|contain.
+// Zoom > 0 enables a slow Ken Burns push; Pan moves it horizontally.
+type ImageRef struct {
+	Path   string  `json:"path"`
+	Fit    string  `json:"fit,omitempty"`
+	Zoom   float64 `json:"zoom,omitempty"`
+	Pan    float64 `json:"pan,omitempty"`
+	At     float64 `json:"at,omitempty"`
+	Border bool    `json:"border,omitempty"`
 }
 
 type Line struct {

@@ -246,7 +246,7 @@ func resolveVoice(v Voice) (string, error) {
 	return f.Name(), nil
 }
 
-func mux(ffmpeg, silent string, audios []string, spec Spec, out string) error {
+func mux(ffmpeg, silent string, audios []string, spec Spec, out string, q Quality) error {
 	args := []string{"-y", "-loglevel", "error", "-i", silent}
 	for _, a := range audios {
 		args = append(args, "-i", a)
@@ -272,7 +272,7 @@ func mux(ffmpeg, silent string, audios []string, spec Spec, out string) error {
 	}
 	args = append(args,
 		"-map", "0:v", "-map", mapAudio,
-		"-c:v", "copy", "-c:a", "aac", "-b:a", "128k",
+		"-c:v", "copy", "-c:a", "aac", "-b:a", q.AudioBitrate,
 		"-shortest", "-movflags", "+faststart", out)
 	cmd := exec.Command(ffmpeg, args...)
 	msg, err := cmd.CombinedOutput()
