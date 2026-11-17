@@ -215,7 +215,8 @@ func Lint(spec Spec, cfg Config, quality string, analysis Analysis) []Finding {
 		if r.RequireEyebrows && sc.Name == "" {
 			add(SevWarn, "EYEBROW_MISSING", "scene has no name/eyebrow", n)
 		}
-		if len(sc.Lines)+len(sc.Items) == 0 && sc.Title == "" && len(sc.Stats) == 0 {
+		hasVisual := sc.Code != nil || sc.Diagram != nil || sc.Drawing != nil || sc.Image != nil
+		if len(sc.Lines)+len(sc.Items) == 0 && sc.Title == "" && len(sc.Stats) == 0 && !hasVisual {
 			add(SevWarn, "EMPTY_SCENE", "scene has no visible content", n)
 		}
 		if len(sc.Items) > r.MaxItemsPerScene {
@@ -244,6 +245,59 @@ func Lint(spec Spec, cfg Config, quality string, analysis Analysis) []Finding {
 				add(SevWarn, "AT_AFTER_END", "stat appears too late: "+st.Value, n)
 			}
 		}
+
+		// Tutorial-specific checks.
+		if sc.Code != nil {
+			if strings.TrimSpace(sc.Code.Content) == "" {
+				add(SevWarn, "CODE_EMPTY", "code scene has no content", n)
+			}
+			if len(strings.Split(sc.Code.Content, "\n")) > 16 {
+				add(SevWarn, "CODE_TOO_TALL", "more than 16 lines will overflow the frame", n)
+			}
+			if _, ok := langKeywords[strings.ToLower(sc.Code.Language)]; !ok {
+				alt := map[string]bool{"ts": true, "js": true, "javascript": true, "py": true, "rs": true, "sh": true}
+				if !alt[strings.ToLower(sc.Code.Language)] {
+					add(SevInfo, "CODE_LANG_FALLBACK", "unknown language "+sc.Code.Language+", using Go highlighting", n)
+				}
+			}
+		}
+		if sc.Diagram != nil {
+			ids := map[string]bool{}
+			for _, node := range sc.Diagram.Nodes {
+				if node.ID == "" {
+					add(SevError, "DIAGRAM_NODE_ID", "diagram node needs an id", n)
+				}
+				ids[node.ID] = true
+			}
+			for _, e := range sc.Diagram.Edges {
+				if !ids[e.From] || !ids[e.To] {
+					add(SevError, "DIAGRAM_BAD_EDGE", "edge references missing node: "+e.From+" -> "+e.To, n)
+				}
+			}
+			if len(sc.Diagram.Nodes) > 9 {
+				add(SevWarn, "DIAGRAM_CROWDED", "more than 9 nodes will be hard to read", n)
+			}
+		}
+		if sc.Drawing != nil {
+			for j, st := range sc.Drawing.Strokes {
+				switch st.Kind {
+				case "line", "arrow", "path":
+					if len(st.Points) < 2 {
+						add(SevError, "DRAW_BAD_STROKE", fmt.Sprintf("stroke %d needs at least 2 points", j+1), n)
+					}
+				case "rect", "circle":
+					if st.W <= 0 || st.H <= 0 {
+						add(SevError, "DRAW_BAD_STROKE", fmt.Sprintf("stroke %d needs w and h", j+1), n)
+					}
+				default:
+					add(SevError, "DRAW_BAD_KIND", "unknown stroke kind: "+st.Kind, n)
+				}
+				if st.At+st.Duration > sc.Duration {
+					add(SevWarn, "DRAW_AFTER_END", fmt.Sprintf("stroke %d finishes after scene ends", j+1), n)
+				}
+			}
+		}
+
 		if i < len(analysis.Scenes) {
 			for _, m := range analysis.Scenes[i].Lines {
 				if m.Overflow {

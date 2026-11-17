@@ -107,6 +107,61 @@ var BuiltinTemplates = map[string]string{
   ],
   "output":"{{output:showcase.mp4}}"
 }`,
+	"tutorial": `{
+  "title": "{{title:Understanding Channels in Go}}",
+  "format": "{{format:landscape}}",
+  "effects": {"typewriter":true,"cursor":true,"chrome":true,"progress":true,
+              "fade":0.36,"slide":10,"easing":"easeOutCubic","stagger":0.35},
+  "music": {"enabled":true,"volume":0.2,"progression":"minimal","tempo":76},
+  "scenes": [
+    {"kind":"title","name":"01 / HOOK","duration":3.5,
+     "title":"{{title:Understanding Channels in Go}}",
+     "subtitle":"{{subtitle:concurrency, explained visually}}","accent":"aqua"},
+    {"kind":"code","name":"02 / CODE","duration":7,
+     "title":"{{codeTitle:The pattern}}",
+     "code":{"language":"{{language:go}}","lineNumbers":true,"highlight":[4,5],
+       "content":"package main\n\nfunc main() {\n  ch := make(chan int)\n  go func() { ch <- 42 }()\n  fmt.Println(<-ch)\n}"}},
+    {"kind":"diagram","name":"03 / DIAGRAM","duration":7,
+     "title":"{{diagramTitle:How data flows}}",
+     "diagram":{"layout":"row",
+       "nodes":[{"id":"a","label":"producer"},{"id":"b","label":"channel","accent":"yellow"},{"id":"c","label":"consumer"}],
+       "edges":[{"from":"a","to":"b","label":"send"},{"from":"b","to":"c","label":"recv"}]}},
+    {"kind":"draw","name":"04 / WHITEBOARD","duration":8,
+     "title":"{{drawTitle:Putting it together}}",
+     "drawing":{"strokes":[
+       {"kind":"rect","x":0.08,"y":0.25,"w":0.24,"h":0.5,"at":0.3,"duration":1.2,"label":"goroutine"},
+       {"kind":"arrow","points":[{"x":0.34,"y":0.5},{"x":0.58,"y":0.5}],"at":1.8,"duration":1,"label":"chan int"},
+       {"kind":"circle","x":0.78,"y":0.5,"w":0.14,"h":0.26,"at":3,"duration":1.2,"label":"main"}]}},
+    {"kind":"credits","name":"05 / RECAP","duration":4,
+     "title":"Key takeaways","subtitle":"{{cta:Follow for more}}"}
+  ],
+  "output":"{{output:tutorial.mp4}}"
+}`,
+	"theory": `{
+  "title": "{{title:Software Architecture Basics}}",
+  "format": "{{format:landscape}}",
+  "effects": {"typewriter":false,"cursor":false,"chrome":true,"progress":true,
+              "fade":0.45,"slide":12,"easing":"easeInOut","tracking":1.5},
+  "music": {"enabled":true,"volume":0.18,"progression":"ambient","tempo":68},
+  "scenes": [
+    {"kind":"title","name":"00 / TITLE","duration":3,
+     "title":"{{title:Software Architecture Basics}}","subtitle":"{{subtitle:theory, visually}}"},
+    {"kind":"slide","name":"01 / CONCEPT","duration":5,"title":"{{section:The problem}}",
+     "lines":[{"text":"Growing systems need boundaries"},{"text":"Dependencies must be explicit"},{"text":"Change should be local"}]},
+    {"kind":"diagram","name":"02 / MODEL","duration":7,"title":"{{diagramTitle:Layered architecture}}",
+     "diagram":{"layout":"row",
+       "nodes":[{"id":"ui","label":"UI","accent":"aqua"},{"id":"svc","label":"Service"},{"id":"db","label":"Storage","accent":"yellow"}],
+       "edges":[{"from":"ui","to":"svc"},{"from":"svc","to":"db"}]}},
+    {"kind":"draw","name":"03 / WHITEBOARD","duration":7,"title":"{{drawTitle:Draw it yourself}}",
+     "drawing":{"strokes":[
+       {"kind":"rect","x":0.1,"y":0.2,"w":0.3,"h":0.6,"at":0.3,"duration":1.5,"label":"domain"},
+       {"kind":"arrow","points":[{"x":0.42,"y":0.5},{"x":0.62,"y":0.5}],"at":2,"duration":1},
+       {"kind":"rect","x":0.64,"y":0.2,"w":0.26,"h":0.6,"at":3,"duration":1.5,"label":"infra"}]}},
+    {"kind":"credits","name":"04 / END","duration":3.5,"title":"Summary",
+     "subtitle":"{{cta:@salazarprograms · Fiverr}}"}
+  ],
+  "output":"{{output:theory.mp4}}"
+}`,
 	"quote": `{
   "title": "{{title:Quote}}",
   "format": "{{format:square}}",

@@ -336,7 +336,7 @@ const specSchema = `{
     "scenes": {"type": "array", "minItems": 1, "items": {
       "type": "object", "required": ["duration"],
       "properties": {
-        "kind": {"enum": ["terminal", "code", "title", "stats", "credits"]},
+        "kind": {"enum": ["terminal", "code", "title", "stats", "credits", "image", "slide", "diagram", "draw"]},
         "name": {"type": "string"}, "duration": {"type": "number", "minimum": 0.5},
         "command": {"type": "string"}, "title": {"type": "string"}, "subtitle": {"type": "string"},
         "accent": {"type": "string"},
@@ -349,7 +349,34 @@ const specSchema = `{
         }}},
         "items": {"type": "array", "items": {"type": "object", "properties": {
           "name": {"type": "string"}, "note": {"type": "string"}, "at": {"type": "number"}
-        }}}
+        }}},
+        "code": {"type": "object", "properties": {
+          "language": {"enum": ["go","python","rust","typescript","sql","bash","dart"]},
+          "content": {"type": "string"}, "lineNumbers": {"type": "boolean"},
+          "highlight": {"type": "array", "items": {"type": "integer"}}, "at": {"type": "number"}
+        }},
+        "diagram": {"type": "object", "properties": {
+          "layout": {"enum": ["row","grid","explicit"]},
+          "nodes": {"type": "array", "items": {"type": "object", "properties": {
+            "id": {"type": "string"}, "label": {"type": "string"},
+            "x": {"type": "number"}, "y": {"type": "number"},
+            "w": {"type": "number"}, "h": {"type": "number"},
+            "shape": {"enum": ["rect","diamond"]}, "accent": {"type": "string"}, "at": {"type": "number"}
+          }}},
+          "edges": {"type": "array", "items": {"type": "object", "properties": {
+            "from": {"type": "string"}, "to": {"type": "string"}, "label": {"type": "string"},
+            "accent": {"type": "string"}, "dashed": {"type": "boolean"}, "at": {"type": "number"}
+          }}}
+        }},
+        "drawing": {"type": "object", "properties": {
+          "strokes": {"type": "array", "items": {"type": "object", "properties": {
+            "kind": {"enum": ["line","rect","circle","arrow","path"]},
+            "points": {"type": "array", "items": {"type": "object", "properties": {"x":{"type":"number"},"y":{"type":"number"}}}},
+            "x":{"type":"number"},"y":{"type":"number"},"w":{"type":"number"},"h":{"type":"number"},
+            "label":{"type":"string"},"color":{"type":"string"},"width":{"type":"number"},
+            "at":{"type":"number"},"duration":{"type":"number"}
+          }}}
+        }}
       }
     }},
     "output": {"type": "string"}

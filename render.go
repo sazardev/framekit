@@ -226,7 +226,15 @@ func drawFrame(p *painter, spec Spec, sceneIdx int, localT, totalT float64) {
 	case "slide":
 		drawSlide(p, spec, sc, localT, fade)
 	case "code":
-		drawTerminal(p, spec, sc, localT, fade, true)
+		if sc.Code != nil {
+			drawCode(p, spec, sc, localT, fade)
+		} else {
+			drawTerminal(p, spec, sc, localT, fade, true)
+		}
+	case "diagram":
+		drawDiagram(p, spec, sc, localT, fade)
+	case "draw":
+		drawDrawing(p, spec, sc, localT, fade)
 	default:
 		drawTerminal(p, spec, sc, localT, fade, false)
 	}

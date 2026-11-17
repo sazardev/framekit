@@ -71,17 +71,84 @@ type Effects struct {
 
 // Scene is one "slide". Kind: terminal | title | stats | credits | code.
 type Scene struct {
-	Kind     string    `json:"kind"`
-	Name     string    `json:"name,omitempty"` // eyebrow label, e.g. "03 / PROJECTS"
-	Duration float64   `json:"duration"`
-	Command  string    `json:"command,omitempty"`
-	Title    string    `json:"title,omitempty"`
-	Subtitle string    `json:"subtitle,omitempty"`
-	Lines    []Line    `json:"lines,omitempty"`
-	Stats    []Stat    `json:"stats,omitempty"`
-	Items    []Item    `json:"items,omitempty"`
-	Accent   string    `json:"accent,omitempty"` // per-scene accent override
-	Image    *ImageRef `json:"image,omitempty"`
+	Kind     string     `json:"kind"`
+	Name     string     `json:"name,omitempty"` // eyebrow label, e.g. "03 / PROJECTS"
+	Duration float64    `json:"duration"`
+	Command  string     `json:"command,omitempty"`
+	Title    string     `json:"title,omitempty"`
+	Subtitle string     `json:"subtitle,omitempty"`
+	Lines    []Line     `json:"lines,omitempty"`
+	Stats    []Stat     `json:"stats,omitempty"`
+	Items    []Item     `json:"items,omitempty"`
+	Accent   string     `json:"accent,omitempty"` // per-scene accent override
+	Image    *ImageRef  `json:"image,omitempty"`
+	Code     *CodeBlock `json:"code,omitempty"`
+	Diagram  *Diagram   `json:"diagram,omitempty"`
+	Drawing  *Drawing   `json:"drawing,omitempty"`
+}
+
+// Point is a normalized coordinate (0..1) inside the scene content area.
+type Point struct {
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
+}
+
+// CodeBlock renders a syntax-highlighted snippet with optional line numbers
+// and highlighted lines.
+type CodeBlock struct {
+	Language    string  `json:"language,omitempty"`
+	Content     string  `json:"content"`
+	LineNumbers bool    `json:"lineNumbers,omitempty"`
+	Highlight   []int   `json:"highlight,omitempty"`
+	At          float64 `json:"at,omitempty"`
+}
+
+// Diagram renders nodes and arrows. Layout: row | grid | explicit.
+type Diagram struct {
+	Layout string        `json:"layout,omitempty"`
+	Nodes  []DiagramNode `json:"nodes"`
+	Edges  []DiagramEdge `json:"edges"`
+}
+
+type DiagramNode struct {
+	ID     string  `json:"id"`
+	Label  string  `json:"label"`
+	X      float64 `json:"x,omitempty"`
+	Y      float64 `json:"y,omitempty"`
+	W      float64 `json:"w,omitempty"`
+	H      float64 `json:"h,omitempty"`
+	Shape  string  `json:"shape,omitempty"` // rect | diamond
+	Accent string  `json:"accent,omitempty"`
+	At     float64 `json:"at,omitempty"`
+}
+
+type DiagramEdge struct {
+	From   string  `json:"from"`
+	To     string  `json:"to"`
+	Label  string  `json:"label,omitempty"`
+	Accent string  `json:"accent,omitempty"`
+	Dashed bool    `json:"dashed,omitempty"`
+	At     float64 `json:"at,omitempty"`
+}
+
+// Drawing animates strokes like a whiteboard marker: line, rect, circle,
+// arrow or a free-form path, revealed progressively over Duration seconds.
+type Drawing struct {
+	Strokes []Stroke `json:"strokes"`
+}
+
+type Stroke struct {
+	Kind     string  `json:"kind"` // line | rect | circle | arrow | path
+	Points   []Point `json:"points,omitempty"`
+	X        float64 `json:"x,omitempty"`
+	Y        float64 `json:"y,omitempty"`
+	W        float64 `json:"w,omitempty"`
+	H        float64 `json:"h,omitempty"`
+	Label    string  `json:"label,omitempty"`
+	Color    string  `json:"color,omitempty"`
+	Width    float64 `json:"width,omitempty"`
+	At       float64 `json:"at,omitempty"`
+	Duration float64 `json:"duration,omitempty"`
 }
 
 // ImageRef draws a local image in an "image" scene. Fit: cover|contain.
@@ -226,6 +293,22 @@ func (s *Spec) Normalize() error {
 		}
 		if sc.Duration <= 0 {
 			sc.Duration = 4
+		}
+		if sc.Code != nil && sc.Code.Language == "" {
+			sc.Code.Language = "go"
+		}
+		if sc.Diagram != nil && sc.Diagram.Layout == "" {
+			sc.Diagram.Layout = "row"
+		}
+		if sc.Drawing != nil {
+			for i := range sc.Drawing.Strokes {
+				if sc.Drawing.Strokes[i].Duration <= 0 {
+					sc.Drawing.Strokes[i].Duration = 0.8
+				}
+				if sc.Drawing.Strokes[i].Color == "" {
+					sc.Drawing.Strokes[i].Color = "green"
+				}
+			}
 		}
 		total += sc.Duration
 	}

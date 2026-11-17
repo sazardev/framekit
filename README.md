@@ -163,6 +163,36 @@ Ready-to-use agent skills live in the repo:
 
 `framekit skills --show` prints both from any directory inside the repo.
 
+## Tutorials & theory
+
+Framekit is built for teaching code and concepts. Three dedicated scene kinds:
+
+| Kind | What it does |
+|---|---|
+| `code` | Syntax-highlighted snippets (Go, Python, Rust, TypeScript, SQL, Bash, Dart) with line numbers, highlighted lines and progressive reveal |
+| `diagram` | Declarative nodes + arrows, with `row`, `grid` or `explicit` layout, labels, shapes and accent colors |
+| `draw` | Whiteboard simulation: `line`, `arrow`, `path`, `rect` and `circle` strokes drawn progressively by normalized coordinates, with a moving pen marker |
+
+Two new templates compose them into full lessons:
+
+```bash
+./framekit use --template tutorial --vars vars.json --out lesson.json
+./framekit use --template theory   --vars vars.json --out theory.json
+```
+
+`tutorial` runs hook → code → diagram → whiteboard → recap (~30 s).
+`theory` runs title → concept slide → layered diagram → whiteboard → summary (~26 s).
+
+Example code scene:
+
+```json
+{"kind":"code","duration":7,"title":"The pattern","code":{
+  "language":"go","lineNumbers":true,"highlight":[4,5],
+  "content":"ch := make(chan int)\ngo func() { ch <- 42 }()\nfmt.Println(<-ch)"}}
+```
+
+The linter validates stroke geometry, diagram edge references and code height.
+
 ## Website
 
 A static landing page lives in `site/` (plain HTML/CSS/JS, no build step).

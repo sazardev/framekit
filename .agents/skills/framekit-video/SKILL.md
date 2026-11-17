@@ -147,6 +147,9 @@ ffmpeg -y -ss 3 -i video.mp4 -frames:v 1 /tmp/frame.png
 - Too many items in one scene → they overflow. Split into two scenes.
 - Using `style` instead of `progression` for music (both work; prefer progression).
 - Expecting text wrapping — it does not exist.
+- For tutorials, start from `tutorial` or `theory` templates: `code` (syntax
+  highlighting), `diagram` (nodes + edges), `draw` (whiteboard strokes with
+  x/y/w/h in 0..1). Keep code under 16 lines and edges must reference node ids.
 
 ## Deliverable
 

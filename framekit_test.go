@@ -170,6 +170,63 @@ func TestQualityProfiles(t *testing.T) {
 	}
 }
 
+func TestTutorialScenes(t *testing.T) {
+	cfg := DefaultConfig()
+	tut, err := RenderTemplate("tutorial", map[string]string{}, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kinds := map[string]bool{}
+	for _, sc := range tut.Scenes {
+		kinds[sc.Kind] = true
+	}
+	for _, k := range []string{"code", "diagram", "draw"} {
+		if !kinds[k] {
+			t.Fatalf("tutorial missing %s scene", k)
+		}
+	}
+	if err := tut.Normalize(); err != nil {
+		t.Fatal(err)
+	}
+	a, err := Analyze(tut, cfg, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range Lint(tut, cfg, "", a) {
+		if f.Severity == SevError {
+			t.Fatalf("lint: %s %s", f.Code, f.Message)
+		}
+	}
+	// Tokenizer smoke test.
+	toks := tokenize(`func main() { ch := make(chan int) // hi`, "go")
+	found := false
+	for _, tk := range toks {
+		if tk.kind == "keyword" && tk.text == "func" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("tokenizer missed func: %+v", toks)
+	}
+	// Lint must catch broken edges and strokes.
+	bad := tut
+	bad.Scenes = append([]Scene{}, tut.Scenes...)
+	bad.Scenes[2].Diagram.Edges[0].To = "missing"
+	if err := bad.Normalize(); err != nil {
+		t.Fatal(err)
+	}
+	a2, _ := Analyze(bad, cfg, "")
+	ok := false
+	for _, f := range Lint(bad, cfg, "", a2) {
+		if f.Code == "DIAGRAM_BAD_EDGE" {
+			ok = true
+		}
+	}
+	if !ok {
+		t.Fatal("expected DIAGRAM_BAD_EDGE")
+	}
+}
+
 func TestEasing(t *testing.T) {
 	if got := Ease("linear", 0.5); got != 0.5 {
 		t.Fatalf("linear = %v", got)
