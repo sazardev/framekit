@@ -133,7 +133,7 @@ var BuiltinTemplates = map[string]string{
      "title":"{{diagramTitle:Split, then merge}}",
      "diagram":{"layout":"row",
        "nodes":[{"id":"in","label":"input"},{"id":"split","label":"split","accent":"yellow"},{"id":"merge","label":"merge","accent":"aqua"}],
-       "edges":[{"from":"in","to":"split"},{"from":"split","to":"merge","label":"log n levels"}]}},
+       "edges":[{"from":"in","to":"split"},{"from":"split","to":"merge","label":"O(log n)"}]}},
     {"kind":"draw","name":"05 / WHITEBOARD","duration":7,
      "title":"{{drawTitle:See the curve}}",
      "drawing":{"strokes":[

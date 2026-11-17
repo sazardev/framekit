@@ -1,18 +1,16 @@
 package framekit
 
-import (
-	"math"
-)
+import "math"
 
 type rect struct{ x, y, w, h float64 }
 
 func contentRect(l Layout) rect {
 	S := l.Scale
 	return rect{
-		x: float64(l.FrameX0) + 60*S,
-		y: float64(l.FrameY0) + 100*S,
-		w: float64(l.FrameX1-l.FrameX0) - 120*S,
-		h: float64(l.FrameY1-l.FrameY0) - 180*S,
+		x: float64(l.FrameX0) + 40*S,
+		y: float64(l.FrameY0) + 40*S,
+		w: float64(l.FrameX1-l.FrameX0) - 80*S,
+		h: float64(l.FrameY1-l.FrameY0) - 80*S,
 	}
 }
 
@@ -20,15 +18,32 @@ func normPoint(area rect, p Point) (float64, float64) {
 	return area.x + p.X*area.w, area.y + p.Y*area.h
 }
 
+func drawArrowHead(p *painter, x0, y0, x1, y1 float64, color string, alpha, S float64) {
+	angle := math.Atan2(y1-y0, x1-x0)
+	length := 13 * S
+	spread := 0.38
+	base := Mix(p.theme.Color(color), p.bg, alpha*0.25)
+	for _, sign := range []float64{1, -1} {
+		a := angle + math.Pi + sign*spread
+		p.line(x1, y1, x1+length*math.Cos(a), y1+length*math.Sin(a), color, alpha)
+	}
+	_ = base
+}
+
 func drawDiagram(p *painter, spec Spec, sc Scene, lt, fade float64) {
 	if sc.Diagram == nil || len(sc.Diagram.Nodes) == 0 {
 		return
 	}
 	d := sc.Diagram
-	l, S := p.lay, p.lay.Scale
+	l := p.lay
+	W, H, S := float64(l.W), float64(l.H), l.Scale
 	area := contentRect(l)
 	if sc.Title != "" {
-		p.text(sc.Title, area.x, float64(l.FrameY0)+72*S, "h2-bold", "fg", fade)
+		p.textAnchored(sc.Title, W/2, H*0.16, "h1-bold", "fg", fade)
+		p.ctx.SetColor(Mix(p.theme.Color("green"), p.bg, fade*0.85))
+		p.ctx.SetLineWidth(1)
+		p.ctx.DrawLine(W/2-50*S, H*0.22, W/2+50*S, H*0.22)
+		p.ctx.Stroke()
 	}
 
 	// Resolve node rectangles.
@@ -37,7 +52,7 @@ func drawDiagram(p *painter, spec Spec, sc Scene, lt, fade float64) {
 	cols := int(math.Ceil(math.Sqrt(float64(n))))
 	rows := int(math.Ceil(float64(n) / float64(cols)))
 	for i, node := range d.Nodes {
-		w, h := 160*S, 66*S
+		w, h := 210*S, 92*S
 		if node.W > 0 {
 			w = area.w * node.W
 		}
@@ -50,7 +65,7 @@ func drawDiagram(p *painter, spec Spec, sc Scene, lt, fade float64) {
 		case "grid":
 			nx = (float64(i%cols) + 0.5) / float64(cols)
 			ny = (float64(i/cols) + 0.5) / float64(rows)
-		default: // row
+		default:
 			nx = (float64(i) + 0.5) / float64(n)
 			ny = 0.5
 		}
@@ -58,85 +73,51 @@ func drawDiagram(p *painter, spec Spec, sc Scene, lt, fade float64) {
 		rects[node.ID] = rect{cx - w/2, cy - h/2, w, h}
 	}
 
-	// Edges first so nodes sit on top.
+	// Arrows first, drawn progressively with a traveling pulse.
 	for i, e := range d.Edges {
 		from, ok1 := rects[e.From]
 		to, ok2 := rects[e.To]
 		if !ok1 || !ok2 {
 			continue
 		}
-		at := e.At
-		if at == 0 {
-			at = 0.5 + float64(i)*0.28
-		}
-		a := fade * EasedReveal(spec, lt, at)
-		if a <= 0.01 {
-			continue
-		}
-		x0, y0 := from.x+from.w/2, from.y+from.h/2
-		x1, y1 := to.x+to.w/2, to.y+to.h/2
-		dx, dy := x1-x0, y1-y0
-		if dx == 0 && dy == 0 {
-			continue
-		}
-		t := math.Min((from.w/2+6*S)/math.Max(math.Abs(dx), 0.001), (from.h/2+6*S)/math.Max(math.Abs(dy), 0.001))
-		sx, sy := x0+dx*t, y0+dy*t
-		t2 := math.Min((to.w/2+8*S)/math.Max(math.Abs(dx), 0.001), (to.h/2+8*S)/math.Max(math.Abs(dy), 0.001))
-		ex, ey := x1-dx*t2, y1-dy*t2
-		color := e.Accent
-		if color == "" {
-			color = "faint"
-		}
-		p.line(sx, sy, ex, ey, color, a)
-		drawArrowHead(p, sx, sy, ex, ey, color, a, S)
-		if e.Label != "" {
-			p.text(e.Label, (sx+ex)/2, (sy+ey)/2-8*S, "small", "dim", a)
-		}
+		drawFlowEdge(p, spec, sc, lt, fade, from, to, e, float64(i), S)
 	}
 
-	// Nodes.
+	// Nodes fade in with a subtle scale-in ("breathing" arrival).
 	for i, node := range d.Nodes {
 		r := rects[node.ID]
 		at := node.At
 		if at == 0 {
-			at = 0.3 + float64(i)*0.22
+			at = 0.2 + float64(i)*0.28
 		}
 		a := fade * EasedReveal(spec, lt, at)
 		if a <= 0.01 {
 			continue
 		}
+		scale := 0.94 + 0.06*Ease("easeOutQuint", a)
+		cx, cy := r.x+r.w/2, r.y+r.h/2
+		w, h := r.w*scale, r.h*scale
+		rx, ry := cx-w/2, cy-h/2
+
 		color := node.Accent
 		if color == "" {
 			color = "aqua"
 		}
-		c := p.theme.Color(color)
-		if a < 0.999 {
-			c = Mix(c, p.bg, a)
-		}
-		p.ctx.SetColor(Mix(p.theme.Color("deep"), p.bg, 1-a))
-		p.ctx.DrawRectangle(r.x, r.y, r.w, r.h)
+		c := Mix(p.theme.Color(color), p.bg, a*0.3)
+		p.ctx.SetColor(Mix(p.theme.Color("deep"), p.bg, 0.4))
+		p.ctx.DrawRectangle(rx, ry, w, h)
 		p.ctx.Fill()
 		p.ctx.SetColor(c)
-		p.ctx.SetLineWidth(1)
+		p.ctx.SetLineWidth(maxFloat(1.5*S, 1))
 		if node.Shape == "diamond" {
-			p.ctx.DrawLine(r.x+r.w/2, r.y, r.x+r.w, r.y+r.h/2)
-			p.ctx.DrawLine(r.x+r.w, r.y+r.h/2, r.x+r.w/2, r.y+r.h)
-			p.ctx.DrawLine(r.x+r.w/2, r.y+r.h, r.x, r.y+r.h/2)
-			p.ctx.DrawLine(r.x, r.y+r.h/2, r.x+r.w/2, r.y)
+			p.ctx.DrawLine(cx, ry, rx+w, cy)
+			p.ctx.DrawLine(rx+w, cy, cx, ry+h)
+			p.ctx.DrawLine(cx, ry+h, rx, cy)
+			p.ctx.DrawLine(rx, cy, cx, ry)
 		} else {
-			p.ctx.DrawRectangle(r.x+0.5, r.y+0.5, r.w-1, r.h-1)
+			p.ctx.DrawRectangle(rx+0.5, ry+0.5, w-1, h-1)
 		}
 		p.ctx.Stroke()
-		p.textAnchored(node.Label, r.x+r.w/2, r.y+r.h/2+7*S, "normal", "fg", a)
-	}
-}
-
-func drawArrowHead(p *painter, x0, y0, x1, y1 float64, color string, alpha, S float64) {
-	angle := math.Atan2(y1-y0, x1-x0)
-	len := 11 * S
-	spread := 0.42
-	for _, sign := range []float64{1, -1} {
-		a := angle + math.Pi + sign*spread
-		p.line(x1, y1, x1+len*math.Cos(a), y1+len*math.Sin(a), color, alpha)
+		p.textAnchored(node.Label, cx, cy+9*S, "h2", "fg", a)
 	}
 }
