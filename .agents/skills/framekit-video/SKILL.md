@@ -24,8 +24,9 @@ Repo: `/home/sazar/Projects/framekit` (module `github.com/sazardev/framekit`).
 4. **Validate before rendering.** Always run `validate` and `describe` first.
 5. **15-60 seconds.** Fiverr/YouTube need at least ~20s; keep it in range.
 6. **Start from a template or `plan`, never from a blank spec.**
-7. **Pick quality deliberately**: `draft` for previews, `social` for platform
-   caps, `high` for delivery, `master` only when re-encoding later.
+7. **Everything is 60 fps.** Pick quality deliberately: `draft` for previews,
+   `social` for platform caps, `high` for delivery, `master` for re-encoding.
+   Use `--fps 30` only if the user explicitly asks for it.
 8. **Assets must be inside `allowedAssetRoots`** (default: repo root). Remote
    fetches are disabled unless the user opts in.
 

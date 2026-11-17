@@ -53,6 +53,7 @@ type Analysis struct {
 	Title       string          `json:"title"`
 	Format      string          `json:"format"`
 	Quality     string          `json:"quality"`
+	FPS         int             `json:"fps"`
 	Duration    float64         `json:"duration"`
 	EstimatedMB float64         `json:"estimatedMB"`
 	VideoKbps   float64         `json:"videoKbps"`
@@ -80,7 +81,7 @@ func Analyze(spec Spec, cfg Config, quality string) (Analysis, error) {
 
 	a := Analysis{
 		Title: spec.Title, Format: spec.Format, Quality: cfg.QualityName(quality),
-		Duration: spec.DurationSeconds(),
+		FPS: q.FPS, Duration: spec.DurationSeconds(),
 	}
 	bg := spec.Theme.Color("bg")
 	accentName := "green"
@@ -175,6 +176,9 @@ func Lint(spec Spec, cfg Config, quality string, analysis Analysis) []Finding {
 	}
 	if analysis.Duration > r.MaxDuration {
 		add(SevError, "DURATION_LONG", fmt.Sprintf("duration %.1fs exceeds maximum %.1fs", analysis.Duration, r.MaxDuration), 0)
+	}
+	if r.Require60FPS && analysis.FPS < 60 {
+		add(SevWarn, "FPS_BELOW_60", fmt.Sprintf("quality profile uses %d fps; policy targets 60 fps", analysis.FPS), 0)
 	}
 	if !contains(r.AllowedFormats, spec.Format) {
 		add(SevError, "FORMAT_DENIED", "format "+spec.Format+" is not allowed", 0)

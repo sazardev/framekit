@@ -112,7 +112,7 @@ func planFromBrief(brief string) framekit.Spec {
 	s := framekit.Spec{
 		Title:  titleFromBrief(brief),
 		Format: "landscape",
-		FPS:    30,
+		FPS:    60,
 		Effects: framekit.Effects{
 			Typewriter: true, Cursor: true, Chrome: true,
 			Progress: true, Fade: 0.38, Slide: 10,

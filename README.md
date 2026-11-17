@@ -53,18 +53,24 @@ Custom templates go in `.framekit.json` under `"templates"`.
 
 ### Quality / compression
 
-Profiles are tuned for flat text graphics (x264 `animation` tune + capped bitrate):
+**All profiles render at 60 fps.** Tuned for flat text graphics in motion:
+x264 `animation` tune, bitrate cap and level 4.2 (safe for 1080×1920@60).
 
 ```bash
 ./framekit quality
-./framekit render --spec spec.json --quality draft     # 640x360, 24fps, crf 30
-./framekit render --spec spec.json --quality social    # 720p, 700k cap
-./framekit render --spec spec.json --quality high      # 720p, crf 20 (default)
-./framekit render --spec spec.json --quality master    # 720p60, crf 16
+./framekit render --spec spec.json --quality draft          # 360p60, crf 31
+./framekit render --spec spec.json --quality social         # 720p60, 900k cap
+./framekit render --spec spec.json --quality high           # 720p60, crf 21 (default)
+./framekit render --spec spec.json --quality master         # 720p60, crf 17
+./framekit render --spec spec.json --quality high --fps 30  # override if needed
 ```
 
-Measured on the 25s intro: **draft 267 KB · social 530 KB · high 762 KB**.
-`draft` renders in ~4s. All outputs are faststart H.264 + AAC.
+The linter emits `FPS_BELOW_60` if a profile drops below 60 fps. Disable with
+`"rules": {"allowLowerFPS": true}` in `.framekit.json`. `spec.fps` is
+documentation; the quality profile wins.
+
+Measured on the 25s intro at 60 fps: draft ~0.5 MB · social ~0.9 MB · high ~1.3 MB.
+All outputs are faststart H.264 + AAC.
 
 ### Linter & analyzer
 

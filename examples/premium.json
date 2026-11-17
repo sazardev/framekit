@@ -1,7 +1,7 @@
 {
   "title": "SazarDev — Premium Reel",
   "format": "portrait",
-  "fps": 30,
+  "fps": 60,
   "theme": { "name": "catppuccin" },
   "branding": {
     "name": "Omar Flores",

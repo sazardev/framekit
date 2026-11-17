@@ -58,6 +58,8 @@ type Rules struct {
 	MaxVoices        int      `json:"maxVoices"`
 	ForbiddenWords   []string `json:"forbiddenWords"`
 	SafeZonePct      float64  `json:"safeZonePct"`
+	Require60FPS     bool     `json:"require60fps"`
+	AllowLowerFPS    bool     `json:"allowLowerFPS"`
 }
 
 // Security defines the local sandbox for assets and remote calls.
@@ -73,29 +75,29 @@ type Security struct {
 // tune, capped bitrate and faststart give crisp type at a small size.
 var QualityProfiles = map[string]Quality{
 	"draft": {
-		Scale: 0.5, FPS: 24, CRF: 30, Preset: "veryfast", Tune: "animation",
-		Profile: "main", Level: "3.1", MaxRate: "300k", BufSize: "600k",
-		AudioBitrate: "64k", Description: "quick preview, ~half resolution",
+		Scale: 0.5, FPS: 60, CRF: 31, Preset: "veryfast", Tune: "animation",
+		Profile: "main", Level: "4.2", MaxRate: "600k", BufSize: "1200k",
+		AudioBitrate: "64k", Description: "quick 60fps preview, half resolution",
 	},
 	"standard": {
-		Scale: 1, FPS: 30, CRF: 25, Preset: "veryfast", Tune: "animation",
-		Profile: "high", Level: "4.0", MaxRate: "900k", BufSize: "1800k",
-		AudioBitrate: "96k", Description: "balanced: crisp text, small file",
+		Scale: 1, FPS: 60, CRF: 26, Preset: "veryfast", Tune: "animation",
+		Profile: "high", Level: "4.2", MaxRate: "1200k", BufSize: "2400k",
+		AudioBitrate: "96k", Description: "balanced 60fps: crisp motion, small file",
 	},
 	"high": {
-		Scale: 1, FPS: 30, CRF: 20, Preset: "medium", Tune: "animation",
-		Profile: "high", Level: "4.1", MaxRate: "1800k", BufSize: "3600k",
-		AudioBitrate: "128k", Description: "default premium quality",
+		Scale: 1, FPS: 60, CRF: 21, Preset: "medium", Tune: "animation",
+		Profile: "high", Level: "4.2", MaxRate: "2400k", BufSize: "4800k",
+		AudioBitrate: "128k", Description: "default premium 60fps delivery",
 	},
 	"master": {
-		Scale: 1, FPS: 60, CRF: 16, Preset: "slow", Tune: "animation",
-		Profile: "high", Level: "4.2", MaxRate: "4000k", BufSize: "8000k",
-		AudioBitrate: "192k", Description: " archival / re-encode source",
+		Scale: 1, FPS: 60, CRF: 17, Preset: "slow", Tune: "animation",
+		Profile: "high", Level: "4.2", MaxRate: "6000k", BufSize: "12000k",
+		AudioBitrate: "192k", Description: "60fps archival / re-encode source",
 	},
 	"social": {
-		Scale: 1, FPS: 30, CRF: 23, Preset: "veryfast", Tune: "animation",
-		Profile: "high", Level: "4.0", MaxRate: "700k", BufSize: "1400k",
-		AudioBitrate: "96k", Description: "platform-safe bitrate cap",
+		Scale: 1, FPS: 60, CRF: 24, Preset: "veryfast", Tune: "animation",
+		Profile: "high", Level: "4.2", MaxRate: "900k", BufSize: "1800k",
+		AudioBitrate: "96k", Description: "60fps with platform-safe bitrate cap",
 	},
 }
 
@@ -112,6 +114,7 @@ func DefaultConfig() Config {
 			MaxScenes: 12, MinContrast: 4.5,
 			RequireBranding: true, RequireMusic: true, RequireEyebrows: false,
 			MaxVoices: 2, ForbiddenWords: []string{}, SafeZonePct: 5,
+			Require60FPS: true,
 		},
 		Security: Security{
 			AllowedAssetRoots: []string{"."},
@@ -212,6 +215,12 @@ func mergeRules(dst *Rules, src Rules) {
 	}
 	if src.SafeZonePct > 0 {
 		dst.SafeZonePct = src.SafeZonePct
+	}
+	if src.Require60FPS {
+		dst.Require60FPS = true
+	}
+	if src.AllowLowerFPS {
+		dst.Require60FPS = false
 	}
 }
 

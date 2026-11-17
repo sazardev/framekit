@@ -1,7 +1,7 @@
 {
   "title": "SazarDev — Square",
   "format": "square",
-  "fps": 30,
+  "fps": 60,
   "effects": {
     "typewriter": true, "cursor": true, "fade": 0.35,
     "slide": 9, "progress": true, "chrome": true

@@ -1,7 +1,7 @@
 {
   "title": "SazarDev — Reel",
   "format": "portrait",
-  "fps": 30,
+  "fps": 60,
   "effects": {
     "typewriter": true, "cursor": true, "fade": 0.3,
     "slide": 8, "progress": true, "chrome": true

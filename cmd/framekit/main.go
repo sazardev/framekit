@@ -97,11 +97,18 @@ func renderCmd(args []string) {
 	specPath := fs.String("spec", "", "path to JSON spec")
 	out := fs.String("out", "", "output .mp4 path")
 	quality := fs.String("quality", "", "quality profile")
+	fps := fs.Int("fps", 0, "override profile fps (default 60)")
 	configPath := fs.String("config", "", "guardrail config path")
 	noStrict := fs.Bool("no-strict", false, "render even if lint reports errors")
 	_ = fs.Parse(args)
 	spec := loadSpec(*specPath)
 	cfg := loadCfg(*configPath)
+	if *fps > 0 {
+		qname := cfg.QualityName(*quality)
+		q := cfg.Quality[qname]
+		q.FPS = *fps
+		cfg.Quality[qname] = q
+	}
 	framekit.SanitizeSpec(&spec)
 	if err := spec.Normalize(); err != nil {
 		fatal(err)
@@ -159,7 +166,7 @@ func fatal(err error) {
 const exampleSpec = `{
   "title": "SazarDev — Freelance Developer Intro",
   "format": "landscape",
-  "fps": 30,
+  "fps": 60,
   "effects": {
     "typewriter": true, "cursor": true, "fade": 0.38,
     "slide": 10, "progress": true, "chrome": true
@@ -206,7 +213,7 @@ Respond with ONLY a JSON object matching this contract:
 {
   "title": string,
   "format": "landscape" | "square" | "portrait",
-  "fps": 30,
+  "fps": 60,
   "theme": {"name": "gruvbox|leader|catppuccin|tokyo-night|nord|dracula|solarized|light"},
   "branding": {"name":"Omar Flores", "subtitle":"video studio",
                "meta":"...", "windowTitle":"video",

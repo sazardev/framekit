@@ -149,8 +149,12 @@ func TestLintAndSecurity(t *testing.T) {
 func TestQualityProfiles(t *testing.T) {
 	cfg := DefaultConfig()
 	for _, n := range []string{"draft", "standard", "high", "social", "master"} {
-		if _, err := cfg.QualityFor(n); err != nil {
+		q, err := cfg.QualityFor(n)
+		if err != nil {
 			t.Fatal(err)
+		}
+		if q.FPS != 60 {
+			t.Fatalf("profile %s = %d fps, want 60", n, q.FPS)
 		}
 	}
 	spec := Spec{Format: "landscape", Size: &Size{W: 1280, H: 720}, Scenes: []Scene{{Duration: 1}}}
